@@ -55,8 +55,6 @@ Explicitly excluded. Documented to prevent scope creep.
 | Feature | Reason |
 |---------|--------|
 | All other Damask sources (Wallhaven, NASA APOD, Unsplash, EarthView, local files) | Defer to v2; Bing and Spotlight sufficient for MVP |
-| Automatic refresh timer | Adds background service complexity; manual refresh only for MVP |
-| Background mode / autostart | Conflicts with "manual refresh only" constraint; defer to v1.x |
 | Multi-monitor different wallpapers | Complex image merging, low early adoption usage; defer to v2 |
 | Video wallpapers | Different app category (Hidamari), resource-heavy; out of scope |
 | Advanced gallery/browser | Already done well by WonderWall; scope creep, dilutes "automatic wallpaper" value |
