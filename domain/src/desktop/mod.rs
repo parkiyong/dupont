@@ -2,7 +2,9 @@ use std::path::{Path, PathBuf};
 
 use crate::error::DEError;
 
+mod cosmic;
 mod gnome;
+pub use cosmic::CosmicDE;
 pub use gnome::GnomeDE;
 
 /// Trait for desktop environment wallpaper setting operations
@@ -36,12 +38,26 @@ pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> 
     let de = detect_desktop_environment().ok_or(DEError::DetectionFailed)?;
     let de_lower = de.to_lowercase();
 
-    // Check for GNOME (covers: GNOME, ubuntu:GNOME, debian, ubuntu, etc.)
+    // Check for COSMIC explicitly (cosmic, pop-cosmic)
+    // COSMIC is checked first since "pop:GNOME" could match COSMIC on Pop!_OS
+    if de_lower.contains("cosmic") {
+        let backend = CosmicDE;
+        if backend.is_available() {
+            return Ok(Box::new(backend));
+        }
+        // Fallback: try GNOME if COSMIC backend unavailable
+        let gnome = GnomeDE;
+        if gnome.is_available() {
+            return Ok(Box::new(gnome));
+        }
+    }
+
+    // Check for GNOME (covers: GNOME, ubuntu:GNOME, debian, ubuntu, unity, pop:GNOME)
     if de_lower.contains("gnome")
         || de_lower.contains("ubuntu")
         || de_lower.contains("debian")
         || de_lower.contains("unity")
-        || de_lower.contains("pop:gnome")
+        || de_lower.contains("pop")
     {
         let backend = GnomeDE;
         if backend.is_available() {
@@ -50,16 +66,6 @@ pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> 
             return Err(DEError::SchemaNotFound {
                 schema: "org.gnome.desktop.background".to_string(),
             });
-        }
-    }
-
-    // Check for COSMIC (covers: COSMIC, pop-cosmic, pop:GNOME on COSMIC)
-    if de_lower.contains("cosmic") || de_lower.contains("pop") {
-        // COSMIC backend will be added in Plan 02
-        // For now, try GNOME compatibility as fallback
-        let backend = GnomeDE;
-        if backend.is_available() {
-            return Ok(Box::new(backend));
         }
     }
 
