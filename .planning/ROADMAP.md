@@ -5,7 +5,7 @@
 
 ## Phases
 
-- [ ] **Phase 1: Core Engine Foundation** - Core domain logic with async operations and caching
+- [x] **Phase 1: Core Engine Foundation** - Core domain logic with async operations and caching (completed 2026-04-14)
 - [ ] **Phase 2: Desktop Environment Integration** - GNOME and COSMIC wallpaper setting APIs
 - [ ] **Phase 3: UI Layer Implementation** - GTK widgets for user interaction
 - [ ] **Phase 4: Integration and Polish** - Application wiring and packaging
@@ -25,9 +25,9 @@
 **Plans**: 3 plans
 
 **Plan List:**
-- [ ] 01-01-PLAN.md — Establish workspace structure and core trait definitions
-- [ ] 01-02-PLAN.md — Implement Bing and Spotlight wallpaper sources with async fetching
-- [ ] 01-03-PLAN.md — Implement image caching with LRU eviction and format validation
+- [x] 01-01-PLAN.md — Establish workspace structure and core trait definitions
+- [x] 01-02-PLAN.md — Implement Bing and Spotlight wallpaper sources with async fetching
+- [x] 01-03-PLAN.md — Implement image caching with LRU eviction and format validation
 
 ### Phase 2: Desktop Environment Integration
 **Goal**: Application detects runtime DE and sets wallpaper on GNOME and COSMIC with clear error messages
@@ -70,7 +70,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Engine Foundation | 0/3 | Planning complete | - |
+| 1. Core Engine Foundation | 3/3 | Complete    | 2026-04-14 |
 | 2. Desktop Environment Integration | 0/0 | Not started | - |
 | 3. UI Layer Implementation | 0/0 | Not started | - |
 | 4. Integration and Polish | 0/0 | Not started | - |
