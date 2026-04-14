@@ -41,7 +41,7 @@
 **Plans**: 2 plans
 
 **Plan List:**
-- [ ] 02-01-PLAN.md — Add gio dependency, restructure desktop module, implement GNOME backend
+- [x] 02-01-PLAN.md — Add gio dependency, restructure desktop module, implement GNOME backend
 - [ ] 02-02-PLAN.md — Implement COSMIC backend and wire into factory function
 
 ### Phase 3: UI Layer Implementation
