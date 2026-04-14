@@ -14,6 +14,7 @@ struct BingResponse {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct BingImage {
     #[serde(rename = "url")]
     url_path: String,

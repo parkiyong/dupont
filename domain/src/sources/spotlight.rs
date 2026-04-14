@@ -38,6 +38,7 @@ struct SpotlightAd {
 }
 
 #[derive(Debug, Deserialize)]
+#[allow(dead_code)]
 struct SpotlightImage {
     #[serde(rename = "u")]
     url: String,
