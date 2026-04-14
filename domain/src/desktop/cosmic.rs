@@ -53,12 +53,14 @@ impl CosmicDE {
         // Write a simple RON-like config that cosmic-bg can read.
         // Format: single wallpaper entry with the file path.
         let path_str = image_path.to_string_lossy();
+        // Escape characters that are special in RON string literals
+        let escaped = path_str.replace('\\', "\\\\").replace('"', "\\\"");
         let content = format!(
             r#"Some(Wallpaper {{
     path: Some("{}"),
     color: None,
 }})"#,
-            path_str
+            escaped
         );
 
         fs::write(&config_path, content).map_err(|e| {
