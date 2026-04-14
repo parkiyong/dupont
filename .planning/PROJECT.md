@@ -12,18 +12,18 @@ Users can automatically set their desktop wallpaper from online sources (Bing, S
 
 ### Validated
 
-(None yet — ship to validate)
+- ✓ Core engine can fetch wallpapers from Bing Wallpaper of the Day API — Validated in Phase 1
+- ✓ Core engine can fetch wallpapers from Microsoft Spotlight API — Validated in Phase 1
+- ✓ Core engine uses async operations (reqwest + tokio) to prevent UI blocking — Validated in Phase 1
+- ✓ Core engine and UI layer are cleanly separated (easy to swap UI toolkit) — Validated in Phase 1
 
 ### Active
 
-- [ ] Core engine can fetch wallpapers from Bing Wallpaper of the Day API
-- [ ] Core engine can fetch wallpapers from Microsoft Spotlight API
 - [ ] Core engine can set wallpaper on GNOME desktop
 - [ ] Core engine can set wallpaper on COSMIC desktop
 - [ ] GTK-rs UI displays current wallpaper preview
 - [ ] GTK-rs UI allows manual refresh of wallpaper
 - [ ] GTK-rs UI allows selecting wallpaper source (Bing/Spotlight)
-- [ ] Core engine and UI layer are cleanly separated (easy to swap UI toolkit)
 
 ### Out of Scope
 
@@ -53,7 +53,7 @@ Damask-rs is a learning project to gain experience with Rust GUI development whi
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
 | GTK-rs for v1 | Original Damask is GTK, mature bindings, native GNOME experience | — Pending |
-| Clean engine/UI separation | Enables future UI toolkit swap (Iced for COSMIC), better architecture | — Pending |
+| Clean engine/UI separation | Enables future UI toolkit swap (Iced for COSMIC), better architecture | ✓ Good |
 | Bing + Spotlight only | Reduces complexity for MVP, two most reliable API sources | — Pending |
 | Manual refresh only | Automatic refresh adds complexity (timers, background services) | — Pending |
 | No tests in v1 | Prioritize working MVP over test coverage for learning project | — Pending |
@@ -77,4 +77,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2025-04-13 after initialization*
+*Last updated: 2026-04-14 after Phase 1 (Core Engine Foundation)*
