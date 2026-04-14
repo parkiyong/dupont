@@ -77,3 +77,89 @@ pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> 
 
     Err(DEError::UnsupportedDE { de })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// DESK-01: All detect_desktop_environment behaviors tested in sequence
+    /// to avoid race conditions with shared env vars in parallel test execution.
+    #[test]
+    fn detect_desktop_environment_parsing_and_routing() {
+        // 1. Colon-separated XDG_CURRENT_DESKTOP yields first entry, lowercased
+        std::env::set_var("XDG_CURRENT_DESKTOP", "ubuntu:GNOME");
+        std::env::remove_var("DESKTOP_SESSION");
+        assert_eq!(
+            detect_desktop_environment(),
+            Some("ubuntu".to_string()),
+            "XDG_CURRENT_DESKTOP=ubuntu:GNOME should yield 'ubuntu'"
+        );
+
+        // 2. DESKTOP_SESSION fallback when XDG_CURRENT_DESKTOP is absent
+        std::env::remove_var("XDG_CURRENT_DESKTOP");
+        std::env::set_var("DESKTOP_SESSION", "gnome");
+        assert_eq!(
+            detect_desktop_environment(),
+            Some("gnome".to_string()),
+            "DESKTOP_SESSION=gnome should yield 'gnome'"
+        );
+
+        // 3. Values are lowercased
+        std::env::set_var("XDG_CURRENT_DESKTOP", "GNOME");
+        std::env::remove_var("DESKTOP_SESSION");
+        assert_eq!(
+            detect_desktop_environment(),
+            Some("gnome".to_string()),
+            "XDG_CURRENT_DESKTOP=GNOME should be lowercased to 'gnome'"
+        );
+
+        // 4. Returns None when neither env var is set
+        std::env::remove_var("XDG_CURRENT_DESKTOP");
+        std::env::remove_var("DESKTOP_SESSION");
+        assert_eq!(
+            detect_desktop_environment(),
+            None,
+            "No env vars should yield None"
+        );
+    }
+
+    /// DESK-01: create_desktop_backend factory routing tested in sequence
+    /// to avoid race conditions with shared env vars.
+    #[test]
+    fn create_desktop_backend_factory_routing() {
+        // 1. "cosmic" should not produce UnsupportedDE
+        std::env::set_var("XDG_CURRENT_DESKTOP", "cosmic");
+        let result = create_desktop_backend();
+        match &result {
+            Err(DEError::UnsupportedDE { .. }) => {
+                panic!("cosmic should not produce UnsupportedDE");
+            }
+            _ => {} // Acceptable: Ok(CosmicDE), SchemaNotFound (fallback gnome unavailable), etc.
+        }
+
+        // 2. Unknown DE "i3" should produce UnsupportedDE
+        std::env::set_var("XDG_CURRENT_DESKTOP", "i3");
+        let result = create_desktop_backend();
+        let err = match result {
+            Err(e) => e,
+            Ok(_) => panic!("Expected error for unknown DE 'i3', got Ok(backend)"),
+        };
+        match err {
+            DEError::UnsupportedDE { de } => assert_eq!(de, "i3"),
+            other => panic!("Expected UnsupportedDE for 'i3', got: {:?}", other),
+        }
+
+        // 3. No env vars should produce DetectionFailed
+        std::env::remove_var("XDG_CURRENT_DESKTOP");
+        std::env::remove_var("DESKTOP_SESSION");
+        let result = create_desktop_backend();
+        let err = match result {
+            Err(e) => e,
+            Ok(_) => panic!("Expected error when no env set, got Ok(backend)"),
+        };
+        match err {
+            DEError::DetectionFailed => {}
+            other => panic!("Expected DetectionFailed, got: {:?}", other),
+        }
+    }
+}

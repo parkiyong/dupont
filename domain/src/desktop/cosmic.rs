@@ -141,3 +141,110 @@ impl DesktopEnvironment for CosmicDE {
             .unwrap_or(false)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use std::sync::atomic::{AtomicUsize, Ordering};
+
+    static COUNTER: AtomicUsize = AtomicUsize::new(0);
+
+    /// Helper: create a unique temp directory under /tmp and a dummy image file.
+    /// Returns (temp_dir_path, image_path). Caller is responsible for cleanup.
+    fn setup_temp_image() -> (PathBuf, PathBuf) {
+        let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+        let tmp = std::env::temp_dir().join(format!("damask_cosmic_test_{}", n));
+        fs::create_dir_all(&tmp).expect("failed to create temp dir");
+        let image_path = tmp.join("test_wallpaper.jpg");
+        fs::write(&image_path, b"fake-image-data").expect("failed to write temp image");
+        (tmp, image_path)
+    }
+
+    /// Helper: clean up a temp directory.
+    fn cleanup_temp_dir(path: &Path) {
+        let _ = fs::remove_dir_all(path);
+    }
+
+    /// DESK-03: set_wallpaper rejects non-existent image files with a clear error.
+    #[test]
+    fn set_wallpaper_rejects_missing_file() {
+        let cosmic = CosmicDE;
+        let bad_path = PathBuf::from("/tmp/this_file_does_not_exist_12345.jpg");
+        let result = cosmic.set_wallpaper(&bad_path);
+        assert!(result.is_err());
+        let err_msg = format!("{}", result.unwrap_err());
+        assert!(
+            err_msg.contains("not found"),
+            "Error message should mention 'not found', got: {}",
+            err_msg
+        );
+    }
+
+    /// DESK-03: name returns "COSMIC".
+    #[test]
+    fn cosmicde_name_is_cosmic() {
+        let cosmic = CosmicDE;
+        assert_eq!(cosmic.name(), "COSMIC");
+    }
+
+    /// DESK-03: get_current_wallpaper returns Ok when called (None if no config).
+    #[test]
+    fn get_current_wallpaper_does_not_error_when_no_config() {
+        let cosmic = CosmicDE;
+        let result = cosmic.get_current_wallpaper();
+        assert!(result.is_ok(), "get_current_wallpaper should not error: {:?}", result);
+    }
+
+    /// DESK-03: RON config roundtrip tests combined into a single test to avoid
+    /// race conditions: both tests write to the same real config file path
+    /// (dirs::config_dir()/cosmic/.../background.ron), so they must run sequentially.
+    #[test]
+    fn roundtrip_wallpaper_config_write_and_read() {
+        let cosmic = CosmicDE;
+        let config_path = CosmicDE::wallpaper_config_path()
+            .expect("wallpaper_config_path should resolve");
+
+        // --- Sub-test 1: Basic roundtrip with a simple path ---
+        let (tmp_dir, image_path) = setup_temp_image();
+        CosmicDE::write_wallpaper_config(&image_path)
+            .expect("write_wallpaper_config should succeed");
+        assert!(config_path.exists(), "config file should exist after write");
+
+        let content = fs::read_to_string(&config_path).expect("should read config file");
+        assert!(
+            content.contains("path: Some(\""),
+            "Config should contain 'path: Some(\"', got: {}",
+            content
+        );
+
+        let result = cosmic.get_current_wallpaper();
+        assert!(result.is_ok(), "get_current_wallpaper should not error: {:?}", result);
+        let parsed = result.unwrap();
+        assert!(parsed.is_some(), "Should parse a path from the config we just wrote");
+        assert_eq!(
+            parsed.unwrap(),
+            image_path,
+            "Parsed path should match the original image path"
+        );
+        cleanup_temp_dir(&tmp_dir);
+
+        // --- Sub-test 2: Roundtrip with special characters in path ---
+        let n = COUNTER.fetch_add(1, Ordering::Relaxed);
+        let tmp2 = std::env::temp_dir().join(format!("damask_cosmic_special_{}", n));
+        fs::create_dir_all(&tmp2).expect("failed to create temp dir");
+        let special_path = tmp2.join("my wallpaper's image.jpg");
+        fs::write(&special_path, b"fake-data").expect("failed to write temp image");
+
+        CosmicDE::write_wallpaper_config(&special_path)
+            .expect("write should succeed with special chars");
+
+        let result = cosmic.get_current_wallpaper().expect("read should succeed");
+        assert_eq!(result, Some(special_path.clone()), "Special chars path should roundtrip correctly");
+
+        cleanup_temp_dir(&tmp2);
+
+        // Cleanup config file
+        let _ = fs::remove_file(&config_path);
+    }
+}
