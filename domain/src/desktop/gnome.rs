@@ -2,7 +2,7 @@ use std::path::{Path, PathBuf};
 
 use crate::desktop::DesktopEnvironment;
 use crate::error::DEError;
-use gio::prelude::SettingsExt;
+use gio::prelude::{FileExt, SettingsExt};
 
 const GNOME_BACKGROUND_SCHEMA: &str = "org.gnome.desktop.background";
 const GNOME_BACKGROUND_KEY: &str = "picture-uri";
@@ -46,9 +46,10 @@ impl GnomeDE {
         ))
     }
 
-    /// Convert a file path to a file:// URI
-    fn path_to_uri(path: &Path) -> String {
-        format!("file://{}", path.display())
+    /// Convert a file path to a file:// URI with proper percent-encoding
+    fn path_to_uri(path: &Path) -> Result<String, DEError> {
+        let gfile = gio::File::for_path(path);
+        Ok(gfile.uri().into())
     }
 
     /// Extract a file path from a file:// URI
@@ -71,7 +72,7 @@ impl DesktopEnvironment for GnomeDE {
         let settings = Self::create_settings()?;
 
         // Convert path to file:// URI and set
-        let uri = Self::path_to_uri(image_path);
+        let uri = Self::path_to_uri(image_path)?;
         settings.set_string(GNOME_BACKGROUND_KEY, &uri).map_err(|e| {
             DEError::SetError(format!(
                 "Failed to set GNOME wallpaper via GSettings: {}",
