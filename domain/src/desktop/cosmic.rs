@@ -103,12 +103,25 @@ impl DesktopEnvironment for CosmicDE {
             ))
         })?;
 
-        // Simple extraction: find the path between quotes after "path: Some("
+        // Extract the path, handling escaped quotes (\\\" and \\\\)
         if let Some(start) = content.find("path: Some(\"") {
             let path_start = start + "path: Some(\"".len();
-            if let Some(end) = content[path_start..].find("\")") {
-                let path_str = &content[path_start..path_start + end];
-                return Ok(Some(PathBuf::from(path_str)));
+            let remaining = &content[path_start..];
+            let mut result = String::new();
+            let mut chars = remaining.chars();
+            while let Some(c) = chars.next() {
+                if c == '\\' {
+                    if let Some(escaped) = chars.next() {
+                        result.push(escaped);
+                    }
+                } else if c == '"' {
+                    break;
+                } else {
+                    result.push(c);
+                }
+            }
+            if !result.is_empty() {
+                return Ok(Some(PathBuf::from(result)));
             }
         }
 
