@@ -22,12 +22,18 @@ pub trait DesktopEnvironment: Send + Sync {
     fn is_available(&self) -> bool;
 }
 
-/// Detect the current desktop environment from environment variables
+/// Detect the current desktop environment from environment variables.
+///
+/// `XDG_CURRENT_DESKTOP` can be a colon-separated list per the freedesktop.org
+/// specification (e.g. `ubuntu:GNOME`). This function uses the first entry.
 pub fn detect_desktop_environment() -> Option<String> {
-    std::env::var("XDG_CURRENT_DESKTOP")
+    let raw = std::env::var("XDG_CURRENT_DESKTOP")
         .or_else(|_| std::env::var("DESKTOP_SESSION"))
-        .ok()
-        .map(|s| s.to_lowercase())
+        .ok()?;
+
+    // XDG_CURRENT_DESKTOP can be colon-separated; use the first entry
+    let primary = raw.split(':').next()?.trim();
+    Some(primary.to_lowercase())
 }
 
 /// Create the appropriate desktop backend based on the detected environment.
