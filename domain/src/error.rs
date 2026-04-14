@@ -12,11 +12,11 @@ pub enum SourceError {
     #[error("No wallpaper found in API response")]
     NoWallpaperFound,
 
-    #[error("Source unavailable: {source}")]
-    Unavailable { source: String },
+    #[error("Source unavailable: {source_name}")]
+    Unavailable { source_name: String },
 
-    #[error("Rate limited by {source}")]
-    RateLimited { source: String },
+    #[error("Rate limited by {source_name}")]
+    RateLimited { source_name: String },
 }
 
 /// Errors from cache operations
