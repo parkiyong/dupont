@@ -36,11 +36,11 @@ pub fn detect_desktop_environment() -> Option<String> {
 /// a boxed backend implementing `DesktopEnvironment` for the detected DE.
 pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> {
     let de = detect_desktop_environment().ok_or(DEError::DetectionFailed)?;
-    let de_lower = de.to_lowercase();
+    // de is already lowercased by detect_desktop_environment()
 
     // Check for COSMIC explicitly (cosmic, pop-cosmic)
     // COSMIC is checked first since "pop:GNOME" could match COSMIC on Pop!_OS
-    if de_lower.contains("cosmic") {
+    if de.contains("cosmic") {
         let backend = CosmicDE;
         if backend.is_available() {
             return Ok(Box::new(backend));
@@ -53,11 +53,11 @@ pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> 
     }
 
     // Check for GNOME (covers: GNOME, ubuntu:GNOME, debian, ubuntu, unity, pop:GNOME)
-    if de_lower.contains("gnome")
-        || de_lower.contains("ubuntu")
-        || de_lower.contains("debian")
-        || de_lower.contains("unity")
-        || de_lower.contains("pop")
+    if de.contains("gnome")
+        || de.contains("ubuntu")
+        || de.contains("debian")
+        || de.contains("unity")
+        || de.contains("pop")
     {
         let backend = GnomeDE;
         if backend.is_available() {
