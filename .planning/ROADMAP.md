@@ -38,7 +38,11 @@
   2. Application sets wallpaper on GNOME desktop using gio::Settings with schema verification
   3. Application sets wallpaper on COSMIC desktop using appropriate API (cosmic-settings D-Bus or GNOME compatibility)
   4. Application provides clear error messages for all wallpaper setting failures (GSettings errors, missing schemas, DE detection issues)
-**Plans**: TBD
+**Plans**: 2 plans
+
+**Plan List:**
+- [ ] 02-01-PLAN.md — Add gio dependency, restructure desktop module, implement GNOME backend
+- [ ] 02-02-PLAN.md — Implement COSMIC backend and wire into factory function
 
 ### Phase 3: UI Layer Implementation
 **Goal**: GTK application displays wallpaper preview, source selector, and refresh button with error toasts
@@ -71,7 +75,7 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Engine Foundation | 3/3 | Complete    | 2026-04-14 |
-| 2. Desktop Environment Integration | 0/0 | Not started | - |
+| 2. Desktop Environment Integration | 0/2 | Not started | - |
 | 3. UI Layer Implementation | 0/0 | Not started | - |
 | 4. Integration and Polish | 0/0 | Not started | - |
 
