@@ -42,7 +42,7 @@
 
 **Plan List:**
 - [x] 02-01-PLAN.md — Add gio dependency, restructure desktop module, implement GNOME backend
-- [ ] 02-02-PLAN.md — Implement COSMIC backend and wire into factory function
+- [x] 02-02-PLAN.md — Implement COSMIC backend and wire into factory function
 
 ### Phase 3: UI Layer Implementation
 **Goal**: GTK application displays wallpaper preview, source selector, and refresh button with error toasts
