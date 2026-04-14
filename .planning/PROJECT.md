@@ -16,11 +16,11 @@ Users can automatically set their desktop wallpaper from online sources (Bing, S
 - ✓ Core engine can fetch wallpapers from Microsoft Spotlight API — Validated in Phase 1
 - ✓ Core engine uses async operations (reqwest + tokio) to prevent UI blocking — Validated in Phase 1
 - ✓ Core engine and UI layer are cleanly separated (easy to swap UI toolkit) — Validated in Phase 1
+- ✓ Core engine can set wallpaper on GNOME desktop — Validated in Phase 2
+- ✓ Core engine can set wallpaper on COSMIC desktop — Validated in Phase 2
 
 ### Active
 
-- [ ] Core engine can set wallpaper on GNOME desktop
-- [ ] Core engine can set wallpaper on COSMIC desktop
 - [ ] GTK-rs UI displays current wallpaper preview
 - [ ] GTK-rs UI allows manual refresh of wallpaper
 - [ ] GTK-rs UI allows selecting wallpaper source (Bing/Spotlight)
@@ -57,7 +57,7 @@ Damask-rs is a learning project to gain experience with Rust GUI development whi
 | Bing + Spotlight only | Reduces complexity for MVP, two most reliable API sources | — Pending |
 | Manual refresh only | Automatic refresh adds complexity (timers, background services) | — Pending |
 | No tests in v1 | Prioritize working MVP over test coverage for learning project | — Pending |
-| GNOME + COSMIC support | User runs both DEs, wallpaper setting APIs differ | — Pending |
+| GNOME + COSMIC support | User runs both DEs, wallpaper setting APIs differ | ✓ Good |
 
 ## Evolution
 
@@ -77,4 +77,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 after Phase 1 (Core Engine Foundation)*
+*Last updated: 2026-04-14 after Phase 2 (Desktop Environment Integration)*
