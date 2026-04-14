@@ -2,7 +2,7 @@ use std::io::Cursor;
 use std::path::{Path, PathBuf};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use image::{ImageFormat, io::Reader as ImageReader};
+use image::{ImageFormat, ImageReader, Limits};
 
 use crate::error::CacheError;
 use crate::wallpaper::Wallpaper;
@@ -142,11 +142,16 @@ impl Cache {
             self.load_entries().await?;
         }
 
-        // Check if already cached
-        if let Some(entry) = self.find_entry(&wallpaper.id) {
+        // Check if already cached — clone path before mutable borrow
+        if self.find_entry(&wallpaper.id).is_some() {
+            let path = self
+                .find_entry(&wallpaper.id)
+                .expect("entry exists")
+                .path
+                .clone();
             // Update access time (LRU tracking)
             self.update_access_time(&wallpaper.id);
-            return Ok(entry.path.clone());
+            return Ok(path);
         }
 
         // Download and cache
@@ -236,27 +241,32 @@ impl Cache {
 
     /// Validate image format with OOM protection and detect the file extension
     ///
-    /// Uses `image::io::Reader` with custom limits to prevent memory exhaustion
+    /// Uses `image::ImageReader` with custom limits to prevent memory exhaustion
     /// from large or corrupted images. Returns the appropriate file extension
     /// (jpg, png, webp) based on detected format.
     ///
     /// Supported formats: JPEG, PNG, WebP. HEIC is not supported in MVP.
     fn validate_and_detect(&self, image_bytes: &[u8]) -> Result<&'static str, CacheError> {
         // Set limits to prevent OOM on large or corrupted images
-        let limits = image::io::Limits::default()
-            .max_image_width(Some(8192))
-            .max_image_height(Some(8192))
-            .max_alloc(Some(50 * 1024 * 1024)); // 50MB
+        let mut limits = Limits::default();
+        limits.max_image_width = Some(8192);
+        limits.max_image_height = Some(8192);
+        limits.max_alloc = Some(50 * 1024 * 1024); // 50MB
 
         let cursor = Cursor::new(image_bytes);
-        let mut reader = ImageReader::with_guessed_format(cursor).map_err(CacheError::ImageError)?;
-        reader.set_limits(limits);
+        let mut reader = ImageReader::new(cursor)
+            .with_guessed_format()
+            .map_err(|e| image::ImageError::IoError(e))?;
+        reader.limits(limits);
+
+        // Get format before decoding (decode consumes self)
+        let format = reader.format();
 
         // Decode to validate the image is not corrupted
         reader.decode().map_err(CacheError::ImageError)?;
 
         // Determine file extension from detected format
-        match reader.format() {
+        match format {
             Some(ImageFormat::Jpeg) => Ok("jpg"),
             Some(ImageFormat::Png) => Ok("png"),
             Some(ImageFormat::WebP) => Ok("webp"),
@@ -316,8 +326,15 @@ impl Cache {
             }
 
             // Find and remove least recently accessed entry
-            if let Some(lru_entry) = self.entries.iter().min_by_key(|e| e.accessed_at) {
-                self.remove_entry(&lru_entry.id).await?;
+            // Clone the ID to avoid borrow conflict with mutable remove_entry
+            let lru_id = self
+                .entries
+                .iter()
+                .min_by_key(|e| e.accessed_at)
+                .map(|e| e.id.clone());
+
+            if let Some(id) = lru_id {
+                self.remove_entry(&id).await?;
             } else {
                 break;
             }
@@ -376,9 +393,10 @@ pub struct CacheStats {
 
 /// Convert a `SystemTime` to Unix timestamp in seconds
 fn to_unix_secs(time: SystemTime) -> Result<u64, CacheError> {
-    time.duration_since(UNIX_EPOCH)
-        .map(|d| d.as_secs())
-        .map_err(CacheError::IoError)
+    Ok(time
+        .duration_since(UNIX_EPOCH)
+        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
+        .as_secs())
 }
 
 /// Get the current Unix timestamp in seconds
