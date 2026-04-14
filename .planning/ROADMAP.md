@@ -22,7 +22,12 @@
   3. All I/O operations use async (reqwest + tokio) without blocking the main thread
   4. Core engine implements clean architecture with trait-based separation (Source, DesktopEnvironment traits)
   5. Core engine caches downloaded wallpapers with LRU eviction to prevent disk bloat (max 500MB, 50 images, 30 days)
-**Plans**: TBD
+**Plans**: 3 plans
+
+**Plan List:**
+- [ ] 01-01-PLAN.md — Establish workspace structure and core trait definitions
+- [ ] 01-02-PLAN.md — Implement Bing and Spotlight wallpaper sources with async fetching
+- [ ] 01-03-PLAN.md — Implement image caching with LRU eviction and format validation
 
 ### Phase 2: Desktop Environment Integration
 **Goal**: Application detects runtime DE and sets wallpaper on GNOME and COSMIC with clear error messages
@@ -65,7 +70,7 @@
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Engine Foundation | 0/0 | Not started | - |
+| 1. Core Engine Foundation | 0/3 | Planning complete | - |
 | 2. Desktop Environment Integration | 0/0 | Not started | - |
 | 3. UI Layer Implementation | 0/0 | Not started | - |
 | 4. Integration and Polish | 0/0 | Not started | - |
