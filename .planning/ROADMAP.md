@@ -6,7 +6,7 @@
 ## Phases
 
 - [x] **Phase 1: Core Engine Foundation** - Core domain logic with async operations and caching (completed 2026-04-14)
-- [ ] **Phase 2: Desktop Environment Integration** - GNOME and COSMIC wallpaper setting APIs
+- [x] **Phase 2: Desktop Environment Integration** - GNOME and COSMIC wallpaper setting APIs (completed 2026-04-14)
 - [ ] **Phase 3: UI Layer Implementation** - GTK widgets for user interaction
 - [ ] **Phase 4: Integration and Polish** - Application wiring and packaging
 
@@ -55,8 +55,12 @@
   4. GTK application allows selecting wallpaper source via dropdown (Bing, Spotlight)
   5. GTK application displays error toasts for all failures (network, decode, set errors)
   6. GTK application provides settings window for source-specific configuration (Bing market, Spotlight locale)
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
+
+**Plan List:**
+- [ ] 03-01-PLAN.md — Create app crate with main window, preview, metadata, source dropdown, refresh, and error toasts
+- [ ] 03-02-PLAN.md — Create settings window with Bing market and Spotlight locale configuration
 
 ### Phase 4: Integration and Polish
 **Goal**: Application integrates all components with configuration loading and prepares for release
@@ -75,8 +79,8 @@
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Core Engine Foundation | 3/3 | Complete    | 2026-04-14 |
-| 2. Desktop Environment Integration | 0/2 | Not started | - |
-| 3. UI Layer Implementation | 0/0 | Not started | - |
+| 2. Desktop Environment Integration | 2/2 | Complete    | 2026-04-14 |
+| 3. UI Layer Implementation | 0/2 | Planning    | - |
 | 4. Integration and Polish | 0/0 | Not started | - |
 
 ---
