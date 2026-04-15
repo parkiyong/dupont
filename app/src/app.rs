@@ -210,8 +210,9 @@ impl AsyncComponent for App {
         AsyncComponentParts { model, widgets }
     }
 
-    async fn update(
+    async fn update_with_view(
         &mut self,
+        widgets: &mut Self::Widgets,
         message: Self::Input,
         sender: AsyncComponentSender<Self>,
         _root: &Self::Root,
@@ -222,6 +223,11 @@ impl AsyncComponent for App {
                     return;
                 }
                 self.loading = true;
+
+                // Update UI to loading state
+                widgets.source_dropdown.set_sensitive(false);
+                widgets.refresh_button.set_sensitive(false);
+                set_button_child_spinner(&widgets.refresh_button);
 
                 // Clone what we need for the async command
                 let source_id = self.active_source_id.clone();
@@ -263,7 +269,6 @@ impl AsyncComponent for App {
                 self.active_source_id = id;
                 sender.input(AppMsg::Refresh);
             }
-
         }
     }
 
@@ -271,7 +276,7 @@ impl AsyncComponent for App {
         &mut self,
         widgets: &mut Self::Widgets,
         message: Self::CommandOutput,
-        sender: AsyncComponentSender<Self>,
+        _sender: AsyncComponentSender<Self>,
         _root: &Self::Root,
     ) {
         match message {
@@ -295,8 +300,7 @@ impl AsyncComponent for App {
                 self.loading = false;
                 widgets.source_dropdown.set_sensitive(true);
                 widgets.refresh_button.set_sensitive(true);
-
-                // Auto-apply as desktop wallpaper
+                set_button_child_label(&widgets.refresh_button, "Refresh Wallpaper");
                 match domain::create_desktop_backend() {
                     Ok(backend) => {
                         if let Err(e) = backend.set_wallpaper(&cache_path) {
@@ -319,10 +323,24 @@ impl AsyncComponent for App {
                 self.loading = false;
                 widgets.source_dropdown.set_sensitive(true);
                 widgets.refresh_button.set_sensitive(true);
+                set_button_child_label(&widgets.refresh_button, "Refresh Wallpaper");
             }
         }
-
-        // Call update_view to apply any #[watch] changes (none currently, but keeps the pattern correct)
-        self.update_view(widgets, sender);
     }
+}
+
+/// Replace the button's child widget with a spinning gtk::Spinner.
+fn set_button_child_spinner(button: &gtk::Button) {
+    let spinner = gtk::Spinner::builder()
+        .spinning(true)
+        .width_request(24)
+        .height_request(24)
+        .build();
+    button.set_child(Some(&spinner));
+}
+
+/// Replace the button's child widget with a text label.
+fn set_button_child_label(button: &gtk::Button, text: &str) {
+    let label = gtk::Label::new(Some(text));
+    button.set_child(Some(&label));
 }
