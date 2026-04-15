@@ -59,7 +59,7 @@
 **UI hint**: yes
 
 **Plan List:**
-- [ ] 03-01-PLAN.md — Create app crate with main window, preview, metadata, source dropdown, refresh, and error toasts
+- [x] 03-01-PLAN.md — Create app crate with main window, preview, metadata, source dropdown, refresh, and error toasts
 - [ ] 03-02-PLAN.md — Create settings window with Bing market and Spotlight locale configuration
 
 ### Phase 4: Integration and Polish
