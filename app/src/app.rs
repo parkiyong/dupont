@@ -37,6 +37,9 @@ pub struct App {
     active_source_id: String,
     source_ids: Vec<String>,
     loading: bool,
+    bing_market: String,
+    spotlight_locale: String,
+    settings_window: Option<adw::PreferencesWindow>,
 }
 
 impl AsyncComponent for App {
@@ -71,13 +74,16 @@ impl AsyncComponent for App {
 
         let source_ids = vec!["bing".to_string(), "spotlight".to_string()];
 
-        let model = App {
+        let mut model = App {
             wallpaper: None,
             cache_path: None,
             cache,
             active_source_id: "bing".to_string(),
             source_ids,
             loading: false,
+            bing_market: "en-US".to_string(),
+            spotlight_locale: "80217".to_string(),
+            settings_window: None,
         };
 
         // Build widget tree manually
@@ -176,7 +182,38 @@ impl AsyncComponent for App {
         clamp.set_child(Some(&inner_box));
         vbox.append(&clamp);
         overlay.set_child(Some(&vbox));
-        root.set_content(Some(&overlay));
+
+        // Add header bar with settings button using adw::HeaderBar
+        let header = adw::HeaderBar::new();
+        header.set_show_start_title_buttons(true);
+        header.set_show_end_title_buttons(true);
+
+        let settings_btn = gtk::Button::new();
+        let settings_icon = gtk::Image::from_icon_name("preferences-system-symbolic");
+        settings_btn.set_child(Some(&settings_icon));
+        settings_btn.set_tooltip_text(Some("Preferences"));
+        header.pack_end(&settings_btn);
+
+        // Create settings window
+        let settings_window = create_settings_window(
+            model.bing_market.clone(),
+            model.spotlight_locale.clone(),
+            Some(&root),
+        );
+        model.settings_window = Some(settings_window);
+
+        // Wire settings button
+        let settings_win = model.settings_window.as_ref().unwrap().clone();
+        settings_btn.connect_clicked(move |_| {
+            settings_win.present();
+        });
+
+        // Use adw::ToolbarView to hold header bar and content
+        let toolbar_view = adw::ToolbarView::new();
+        toolbar_view.add_top_bar(&header);
+        toolbar_view.set_content(Some(&overlay));
+
+        root.set_content(Some(&toolbar_view));
 
         // Wire source dropdown signal
         let sender_clone = sender.clone();
@@ -232,14 +269,16 @@ impl AsyncComponent for App {
                 // Clone what we need for the async command
                 let source_id = self.active_source_id.clone();
                 let cache = self.cache.clone();
+                let bing_market = self.bing_market.clone();
+                let spotlight_locale = self.spotlight_locale.clone();
 
                 // Spawn async fetch using oneshot_command
                 sender.oneshot_command(async move {
                     // Create the appropriate source directly (avoids borrow-across-await)
                     let source: Box<dyn domain::Source> = if source_id == "spotlight" {
-                        Box::new(domain::SpotlightSource::new())
+                        Box::new(domain::SpotlightSource::with_locale(spotlight_locale))
                     } else {
-                        Box::new(domain::BingSource::new())
+                        Box::new(domain::BingSource::with_market(bing_market))
                     };
 
                     // Fetch wallpaper
@@ -268,6 +307,11 @@ impl AsyncComponent for App {
             AppMsg::SourceChanged(id) => {
                 self.active_source_id = id;
                 sender.input(AppMsg::Refresh);
+            }
+
+            AppMsg::SettingsChanged { bing_market, spotlight_locale } => {
+                self.bing_market = bing_market;
+                self.spotlight_locale = spotlight_locale;
             }
         }
     }
@@ -343,4 +387,67 @@ fn set_button_child_spinner(button: &gtk::Button) {
 fn set_button_child_label(button: &gtk::Button, text: &str) {
     let label = gtk::Label::new(Some(text));
     button.set_child(Some(&label));
+}
+
+/// Create settings window with Bing market and Spotlight locale configuration.
+fn create_settings_window(
+    bing_market: String,
+    spotlight_locale: String,
+    transient_for: Option<&adw::ApplicationWindow>,
+) -> adw::PreferencesWindow {
+    let window = adw::PreferencesWindow::new();
+
+    if let Some(parent) = transient_for {
+        window.set_transient_for(Some(parent));
+    }
+
+    window.set_title(Some("Damask Preferences"));
+    window.set_modal(true);
+
+    let markets = [
+        "en-US", "zh-CN", "ja-JP", "en-GB", "fr-FR", "de-DE", "pt-BR", "es-ES", "it-IT",
+        "ru-RU",
+    ];
+    let market_names = [
+        "English (US)",
+        "Chinese (Simplified)",
+        "Japanese",
+        "English (UK)",
+        "French",
+        "German",
+        "Portuguese (Brazil)",
+        "Spanish",
+        "Italian",
+        "Russian",
+    ];
+    let market_list = gtk::StringList::new(&market_names);
+    let initial_index = markets
+        .iter()
+        .position(|&m| m == bing_market)
+        .unwrap_or(0) as u32;
+
+    let locale_entry = adw::EntryRow::new();
+    locale_entry.set_title("Locale");
+    locale_entry.set_text(&spotlight_locale);
+
+    let page = adw::PreferencesPage::new();
+
+    let bing_group = adw::PreferencesGroup::new();
+    bing_group.set_title("Bing");
+
+    let market_row = adw::ComboRow::new();
+    market_row.set_title("Market");
+    market_row.set_model(Some(&market_list));
+    market_row.set_selected(initial_index);
+
+    let spotlight_group = adw::PreferencesGroup::new();
+    spotlight_group.set_title("Spotlight");
+
+    bing_group.add(&market_row);
+    spotlight_group.add(&locale_entry);
+    page.add(&bing_group);
+    page.add(&spotlight_group);
+    window.add(&page);
+
+    window
 }
