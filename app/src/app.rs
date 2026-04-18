@@ -348,16 +348,8 @@ impl AsyncComponent for App {
                 set_button_child_label(&widgets.refresh_button, "Refresh Wallpaper");
                 match domain::create_desktop_backend() {
                     Ok(backend) => {
-                        println!("Desktop backend created: {}", backend.name());
-                        println!("Attempting to set wallpaper from: {:?}", cache_path);
                         if let Err(e) = backend.set_wallpaper(&cache_path) {
                             eprintln!("Failed to set wallpaper: {}", e);
-                        } else {
-                            println!("Wallpaper set successfully on {}", backend.name());
-                            // Verify by reading back
-                            if let Ok(Some(current)) = backend.get_current_wallpaper() {
-                                println!("Verified - current wallpaper is: {:?}", current);
-                            }
                         }
                     }
                     Err(e) => {
@@ -368,7 +360,6 @@ impl AsyncComponent for App {
 
             CmdOut::FetchError(msg) => {
                 // Show error toast
-                eprintln!("Fetch error: {}", msg);
                 let toast = adw::Toast::new(&msg);
                 toast.set_timeout(5);
                 widgets.overlay.add_toast(toast);

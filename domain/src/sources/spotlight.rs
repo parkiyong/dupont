@@ -106,24 +106,19 @@ impl Source for SpotlightSource {
             "https://fd.api.iris.microsoft.com/v4/api/selection?placement=88000820&bcnt=1&country={}&locale={}&fmt=json",
             country, self.locale
         );
-        eprintln!("[spotlight] request URL: {}", url);
-        eprintln!("[spotlight] locale: {}, country: {}", self.locale, country);
 
         let response = self.fetch_with_retry(&url, 3).await?;
 
         let body = response.text().await.map_err(|e| {
             SourceError::ParseError(format!("Failed to read Spotlight response body: {}", e))
         })?;
-        eprintln!("[spotlight] response body (first 500 chars): {}...", &body[..body.len().min(500)]);
 
         // Check for API error responses
         let outer: SpotlightResponse = serde_json::from_str(&body).map_err(|e| {
-            eprintln!("[spotlight] failed to parse outer response: {}", e);
             SourceError::ParseError(format!("Failed to parse Spotlight API response: {}", e))
         })?;
 
         if let Some(err) = outer.batchrsp.errors.first() {
-            eprintln!("[spotlight] API error: {}", err.msg);
             return Err(SourceError::Unavailable {
                 source_name: format!("Spotlight: {}", err.msg),
             });
@@ -137,20 +132,14 @@ impl Source for SpotlightSource {
             .next()
             .ok_or(SourceError::NoWallpaperFound)?
             .item;
-        eprintln!("[spotlight] inner item_json (first 300 chars): {}...", &item_json[..item_json.len().min(300)]);
 
         // Parse the inner JSON (contains "f", "v", "rdr", "ad" fields)
         let inner: SpotlightInner = serde_json::from_str(&item_json).map_err(|e| {
-            eprintln!("[spotlight] failed to parse inner ad data: {}", e);
             SourceError::ParseError(format!("Failed to parse Spotlight ad data: {}", e))
         })?;
         let ad = inner.ad;
-        eprintln!("[spotlight] parsed ad - landscape_image: {:?}, title: {:?}", ad.landscape_image.is_some(), ad.title);
 
-        let image = ad.landscape_image.ok_or_else(|| {
-            eprintln!("[spotlight] landscape_image is None");
-            SourceError::NoWallpaperFound
-        })?;
+        let image = ad.landscape_image.ok_or(SourceError::NoWallpaperFound)?;
         let image_url = image.asset;
 
         let title = ad.title.unwrap_or_default();

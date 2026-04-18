@@ -6,6 +6,7 @@ use gio::prelude::{FileExt, SettingsExt};
 
 const GNOME_BACKGROUND_SCHEMA: &str = "org.gnome.desktop.background";
 const GNOME_BACKGROUND_KEY: &str = "picture-uri";
+const GNOME_BACKGROUND_DARK_KEY: &str = "picture-uri-dark";
 
 /// GNOME desktop environment backend using gio::Settings
 ///
@@ -71,11 +72,17 @@ impl DesktopEnvironment for GnomeDE {
         // Create settings (per-call, not stored)
         let settings = Self::create_settings()?;
 
-        // Convert path to file:// URI and set
+        // Convert path to file:// URI and set both light and dark keys
         let uri = Self::path_to_uri(image_path)?;
         settings.set_string(GNOME_BACKGROUND_KEY, &uri).map_err(|e| {
             DEError::SetError(format!(
                 "Failed to set GNOME wallpaper via GSettings: {}",
+                e
+            ))
+        })?;
+        settings.set_string(GNOME_BACKGROUND_DARK_KEY, &uri).map_err(|e| {
+            DEError::SetError(format!(
+                "Failed to set GNOME dark wallpaper via GSettings: {}",
                 e
             ))
         })?;
