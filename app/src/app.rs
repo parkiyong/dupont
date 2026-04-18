@@ -1,4 +1,6 @@
+use std::cell::RefCell;
 use std::path::PathBuf;
+use std::rc::Rc;
 use std::sync::Arc;
 
 use adw::prelude::*;
@@ -37,8 +39,8 @@ pub struct App {
     active_source_id: String,
     source_ids: Vec<String>,
     loading: bool,
-    bing_market: String,
-    spotlight_locale: String,
+    bing_market: Rc<RefCell<String>>,
+    spotlight_locale: Rc<RefCell<String>>,
 }
 
 impl AsyncComponent for App {
@@ -80,8 +82,8 @@ impl AsyncComponent for App {
             active_source_id: "bing".to_string(),
             source_ids,
             loading: false,
-            bing_market: "en-US".to_string(),
-            spotlight_locale: "en-US".to_string(),
+            bing_market: Rc::new(RefCell::new("en-US".to_string())),
+            spotlight_locale: Rc::new(RefCell::new("en-US".to_string())),
         };
 
         // Build widget tree manually
@@ -199,8 +201,8 @@ impl AsyncComponent for App {
         let settings_locale = model.spotlight_locale.clone();
         settings_btn.connect_clicked(move |_| {
             let win = create_settings_window(
-                settings_market.clone(),
-                settings_locale.clone(),
+                settings_market.borrow().clone(),
+                settings_locale.borrow().clone(),
                 Some(&settings_root),
                 settings_sender.clone(),
             );
@@ -268,8 +270,8 @@ impl AsyncComponent for App {
                 // Clone what we need for the async command
                 let source_id = self.active_source_id.clone();
                 let cache = self.cache.clone();
-                let bing_market = self.bing_market.clone();
-                let spotlight_locale = self.spotlight_locale.clone();
+                let bing_market = self.bing_market.borrow().clone();
+                let spotlight_locale = self.spotlight_locale.borrow().clone();
 
                 // Spawn async fetch using oneshot_command
                 sender.oneshot_command(async move {
@@ -309,8 +311,8 @@ impl AsyncComponent for App {
             }
 
             AppMsg::SettingsChanged { bing_market, spotlight_locale } => {
-                self.bing_market = bing_market;
-                self.spotlight_locale = spotlight_locale;
+                *self.bing_market.borrow_mut() = bing_market;
+                *self.spotlight_locale.borrow_mut() = spotlight_locale;
             }
         }
     }

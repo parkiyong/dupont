@@ -93,8 +93,8 @@ impl Source for BingSource {
         // Extract attribution (copyright holder from copyright text)
         let attribution = extract_attribution(&image.description);
 
-        // Create ID from date
-        let id = format!("bing-{}", image.date);
+        // Create ID from date + market to avoid cache collision across markets
+        let id = format!("bing-{}-{}", self.market, image.date);
 
         Ok(Wallpaper::new(
             id,
