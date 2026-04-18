@@ -82,7 +82,7 @@ impl AsyncComponent for App {
             source_ids,
             loading: false,
             bing_market: "en-US".to_string(),
-            spotlight_locale: "80217".to_string(),
+            spotlight_locale: "en-US".to_string(),
             settings_window: None,
         };
 
@@ -199,6 +199,7 @@ impl AsyncComponent for App {
             model.bing_market.clone(),
             model.spotlight_locale.clone(),
             Some(&root),
+            sender.clone(),
         );
         model.settings_window = Some(settings_window);
 
@@ -347,8 +348,16 @@ impl AsyncComponent for App {
                 set_button_child_label(&widgets.refresh_button, "Refresh Wallpaper");
                 match domain::create_desktop_backend() {
                     Ok(backend) => {
+                        println!("Desktop backend created: {}", backend.name());
+                        println!("Attempting to set wallpaper from: {:?}", cache_path);
                         if let Err(e) = backend.set_wallpaper(&cache_path) {
                             eprintln!("Failed to set wallpaper: {}", e);
+                        } else {
+                            println!("Wallpaper set successfully on {}", backend.name());
+                            // Verify by reading back
+                            if let Ok(Some(current)) = backend.get_current_wallpaper() {
+                                println!("Verified - current wallpaper is: {:?}", current);
+                            }
                         }
                     }
                     Err(e) => {
@@ -359,6 +368,7 @@ impl AsyncComponent for App {
 
             CmdOut::FetchError(msg) => {
                 // Show error toast
+                eprintln!("Fetch error: {}", msg);
                 let toast = adw::Toast::new(&msg);
                 toast.set_timeout(5);
                 widgets.overlay.add_toast(toast);
@@ -394,6 +404,7 @@ fn create_settings_window(
     bing_market: String,
     spotlight_locale: String,
     transient_for: Option<&adw::ApplicationWindow>,
+    sender: relm4::AsyncComponentSender<App>,
 ) -> adw::PreferencesWindow {
     let window = adw::PreferencesWindow::new();
 
@@ -442,6 +453,30 @@ fn create_settings_window(
 
     let spotlight_group = adw::PreferencesGroup::new();
     spotlight_group.set_title("Spotlight");
+
+    // Wire market selection → send SettingsChanged
+    let sender1 = sender.clone();
+    let locale_entry_clone = locale_entry.clone();
+    market_row.connect_selected_notify(move |row| {
+        let market = markets[row.selected() as usize].to_string();
+        let locale = locale_entry_clone.text().to_string();
+        sender1.input(AppMsg::SettingsChanged {
+            bing_market: market,
+            spotlight_locale: locale,
+        });
+    });
+
+    // Wire locale entry → send SettingsChanged
+    let sender2 = sender.clone();
+    let market_row_clone = market_row.clone();
+    locale_entry.connect_changed(move |entry| {
+        let locale = entry.text().to_string();
+        let market = markets[market_row_clone.selected() as usize].to_string();
+        sender2.input(AppMsg::SettingsChanged {
+            bing_market: market,
+            spotlight_locale: locale,
+        });
+    });
 
     bing_group.add(&market_row);
     spotlight_group.add(&locale_entry);

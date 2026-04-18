@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use reqwest::Client;
 use serde::Deserialize;
+use serde_json;
 use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::time::Duration;
@@ -9,7 +10,7 @@ use crate::error::SourceError;
 use crate::source::Source;
 use crate::wallpaper::Wallpaper;
 
-/// Microsoft Spotlight API response structure (deeply nested)
+/// Microsoft Spotlight API (fd.api.iris.microsoft.com) response
 #[derive(Debug, Deserialize)]
 struct SpotlightResponse {
     batchrsp: SpotlightBatch,
@@ -17,56 +18,62 @@ struct SpotlightResponse {
 
 #[derive(Debug, Deserialize)]
 struct SpotlightBatch {
+    #[serde(default)]
+    errors: Vec<SpotlightError>,
+    #[serde(default)]
     items: Vec<SpotlightItem>,
 }
 
 #[derive(Debug, Deserialize)]
-struct SpotlightItem {
-    item: Vec<SpotlightItemData>,
+struct SpotlightError {
+    msg: String,
 }
 
+/// items[0].item is a JSON string, not a nested object
 #[derive(Debug, Deserialize)]
-struct SpotlightItemData {
-    #[serde(rename = "ad")]
+struct SpotlightItem {
+    item: String,
+}
+
+/// Wrapper for the inner JSON string (items[0].item)
+#[derive(Debug, Deserialize)]
+struct SpotlightInner {
     ad: SpotlightAd,
 }
 
+/// Inner ad structure (nested under "ad" in the inner JSON)
 #[derive(Debug, Deserialize)]
 struct SpotlightAd {
-    #[serde(rename = "imageFullscreen001")]
-    image: SpotlightImage,
+    #[serde(rename = "landscapeImage", default)]
+    landscape_image: Option<SpotlightImage>,
+    #[serde(default)]
+    title: Option<String>,
+    #[serde(rename = "iconHoverText", default)]
+    icon_hover_text: Option<String>,
+    #[serde(default)]
+    copyright: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct SpotlightImage {
-    #[serde(rename = "u")]
-    url: String,
-    #[serde(rename = "t")]
-    title: String,
-    #[serde(rename = "desc")]
-    description: String,
-    #[serde(rename = "l")]
-    attribution_url: String,
+    asset: String,
 }
 
 /// Microsoft Spotlight source
 ///
-/// Fetches wallpapers from Microsoft's Spotlight delivery API.
+/// Fetches wallpapers from Microsoft's Spotlight delivery API (fd.api.iris.microsoft.com).
 pub struct SpotlightSource {
     client: Client,
     locale: String,
-    resolution: (u32, u32),
-    base_url: &'static str,
 }
 
 impl SpotlightSource {
-    /// Create a new SpotlightSource with default settings (en-US, 1920x1080)
+    /// Create a new SpotlightSource with default settings (en-US)
     pub fn new() -> Self {
-        Self::with_locale("80217".to_string()) // 80217 = en-US
+        Self::with_locale("en-US".to_string())
     }
 
-    /// Create a new SpotlightSource with specified locale code
+    /// Create a new SpotlightSource with specified locale (e.g. "en-US", "ja-JP")
     pub fn with_locale(locale: String) -> Self {
         Self {
             client: Client::builder()
@@ -74,15 +81,7 @@ impl SpotlightSource {
                 .build()
                 .expect("Failed to create HTTP client"),
             locale,
-            resolution: (1920, 1080), // Default Full HD resolution
-            base_url: "https://arc.msn.com/v3/Delivery/Cache",
         }
-    }
-
-    /// Set resolution for fetched wallpapers (builder pattern)
-    pub fn with_resolution(mut self, width: u32, height: u32) -> Self {
-        self.resolution = (width, height);
-        self
     }
 }
 
@@ -95,44 +94,81 @@ impl Default for SpotlightSource {
 #[async_trait]
 impl Source for SpotlightSource {
     async fn fetch(&self) -> Result<Wallpaper, SourceError> {
-        // Build API URL with parameters
-        let url = format!(
-            "{}?pid=209567&fmt=json&rafb=0&ua=WindowsShellClient%2F0&disphorzres={}&dispvertres={}&lo={}",
-            self.base_url, self.resolution.0, self.resolution.1, self.locale
-        );
+        // Parse locale to get country code (e.g. "en-US" -> "US")
+        let country = self
+            .locale
+            .split('-')
+            .nth(1)
+            .unwrap_or(&self.locale)
+            .to_uppercase();
 
-        // Fetch from Spotlight API with retry for rate limiting
+        let url = format!(
+            "https://fd.api.iris.microsoft.com/v4/api/selection?placement=88000820&bcnt=1&country={}&locale={}&fmt=json",
+            country, self.locale
+        );
+        eprintln!("[spotlight] request URL: {}", url);
+        eprintln!("[spotlight] locale: {}, country: {}", self.locale, country);
+
         let response = self.fetch_with_retry(&url, 3).await?;
 
-        // Parse JSON response
-        let spotlight_response: SpotlightResponse = response
-            .json()
-            .await
-            .map_err(|e| {
-                SourceError::ParseError(format!("Failed to parse Spotlight API response: {}", e))
-            })?;
+        let body = response.text().await.map_err(|e| {
+            SourceError::ParseError(format!("Failed to read Spotlight response body: {}", e))
+        })?;
+        eprintln!("[spotlight] response body (first 500 chars): {}...", &body[..body.len().min(500)]);
 
-        // Extract image from deeply nested structure
-        let image = spotlight_response
+        // Check for API error responses
+        let outer: SpotlightResponse = serde_json::from_str(&body).map_err(|e| {
+            eprintln!("[spotlight] failed to parse outer response: {}", e);
+            SourceError::ParseError(format!("Failed to parse Spotlight API response: {}", e))
+        })?;
+
+        if let Some(err) = outer.batchrsp.errors.first() {
+            eprintln!("[spotlight] API error: {}", err.msg);
+            return Err(SourceError::Unavailable {
+                source_name: format!("Spotlight: {}", err.msg),
+            });
+        }
+
+        // Extract the inner JSON string from items[0].item
+        let item_json = outer
             .batchrsp
             .items
             .into_iter()
-            .filter_map(|item| item.item.into_iter().next())
-            .map(|data| data.ad.image)
             .next()
-            .ok_or(SourceError::NoWallpaperFound)?;
+            .ok_or(SourceError::NoWallpaperFound)?
+            .item;
+        eprintln!("[spotlight] inner item_json (first 300 chars): {}...", &item_json[..item_json.len().min(300)]);
 
-        // Create ID from URL hash
-        let id = format!("spotlight-{}", hash_url(&image.url));
+        // Parse the inner JSON (contains "f", "v", "rdr", "ad" fields)
+        let inner: SpotlightInner = serde_json::from_str(&item_json).map_err(|e| {
+            eprintln!("[spotlight] failed to parse inner ad data: {}", e);
+            SourceError::ParseError(format!("Failed to parse Spotlight ad data: {}", e))
+        })?;
+        let ad = inner.ad;
+        eprintln!("[spotlight] parsed ad - landscape_image: {:?}, title: {:?}", ad.landscape_image.is_some(), ad.title);
 
-        // Extract attribution from description (format: "Description (© Copyright)")
-        let attribution = extract_attribution(&image.description);
+        let image = ad.landscape_image.ok_or_else(|| {
+            eprintln!("[spotlight] landscape_image is None");
+            SourceError::NoWallpaperFound
+        })?;
+        let image_url = image.asset;
+
+        let title = ad.title.unwrap_or_default();
+        let description = ad
+            .icon_hover_text
+            .as_ref()
+            .and_then(|text| text.split('\n').next())
+            .map(|s| s.trim().to_string())
+            .unwrap_or_default();
+        let attribution = ad.copyright.unwrap_or_else(|| "Microsoft".to_string());
+
+        let id = format!("spotlight-{}", hash_url(&image_url));
 
         Ok(Wallpaper::new(
             id,
-            image.url,
-            image.title,
-            image.description,
+            image_url,
+            title,
+            description,
             attribution,
             "spotlight".to_string(),
         ))
@@ -161,7 +197,6 @@ impl SpotlightSource {
 
             let status = response.status();
 
-            // Check for rate limiting
             if status.as_u16() == 429 {
                 retries += 1;
                 if retries >= max_retries {
@@ -170,13 +205,11 @@ impl SpotlightSource {
                     });
                 }
 
-                // Exponential backoff: 2s, 4s, 8s
                 let backoff = Duration::from_secs(2u64.pow(retries));
                 tokio::time::sleep(backoff).await;
                 continue;
             }
 
-            // Return response for non-rate-limit status codes
             if !status.is_success() {
                 return Err(SourceError::Unavailable {
                     source_name: format!("Spotlight API returned status {}", status),
@@ -193,16 +226,4 @@ fn hash_url(url: &str) -> String {
     let mut hasher = DefaultHasher::new();
     url.hash(&mut hasher);
     format!("{:x}", hasher.finish())
-}
-
-/// Extract attribution from description string.
-///
-/// Expected format: "Description text (© Copyright Holder)"
-fn extract_attribution(description: &str) -> String {
-    description
-        .split('©')
-        .nth(1)
-        .and_then(|s| s.split(')').next())
-        .map(|s| s.trim().to_string())
-        .unwrap_or_else(|| "Microsoft".to_string())
 }
