@@ -18,19 +18,24 @@ Users can automatically set their desktop wallpaper from online sources (Bing, S
 - ✓ Core engine and UI layer are cleanly separated (easy to swap UI toolkit) — Validated in Phase 1
 - ✓ Core engine can set wallpaper on GNOME desktop — Validated in Phase 2
 - ✓ Core engine can set wallpaper on COSMIC desktop — Validated in Phase 2
+- ✓ GTK-rs UI displays current wallpaper preview — Validated in Phase 3
+- ✓ GTK-rs UI allows manual refresh of wallpaper — Validated in Phase 3
+- ✓ GTK-rs UI allows selecting wallpaper source (Bing/Spotlight) — Validated in Phase 3
+- ✓ GTK-rs UI displays wallpaper metadata (title, description, attribution) — Validated in Phase 3
+- ✓ GTK-rs UI displays error toasts for failures — Validated in Phase 3
+- ✓ GTK-rs UI provides settings window for source configuration — Validated in Phase 3
 
 ### Active
 
-- [ ] GTK-rs UI displays current wallpaper preview
-- [ ] GTK-rs UI allows manual refresh of wallpaper
-- [ ] GTK-rs UI allows selecting wallpaper source (Bing/Spotlight)
+- [ ] Application runs complete end-to-end workflow
+- [ ] Configuration persists source preferences across sessions
+- [ ] Application includes desktop file for app menu integration
+- [ ] Application includes appropriate icon
 
 ### Out of Scope
 
 - [All other Damask sources] — Wallhaven, NASA APOD, Unsplash, EarthView, local files defer to v2
 - [Automatic refresh] — Manual refresh only for MVP
-- [Preferences/Settings] — Hardcoded defaults for MVP
-- [Advanced features] — Toasts, error handling UI, attribution display, etc.
 - [Flatpak packaging] — Local development only for MVP
 - [Other desktop environments] — Only GNOME and COSMIC
 
@@ -77,4 +82,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-14 after Phase 2 (Desktop Environment Integration)*
+*Last updated: 2026-04-19 after Phase 3 (UI Layer Implementation)*
