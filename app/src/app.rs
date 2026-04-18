@@ -39,7 +39,6 @@ pub struct App {
     loading: bool,
     bing_market: String,
     spotlight_locale: String,
-    settings_window: Option<adw::PreferencesWindow>,
 }
 
 impl AsyncComponent for App {
@@ -74,7 +73,7 @@ impl AsyncComponent for App {
 
         let source_ids = vec!["bing".to_string(), "spotlight".to_string()];
 
-        let mut model = App {
+        let model = App {
             wallpaper: None,
             cache_path: None,
             cache,
@@ -83,7 +82,6 @@ impl AsyncComponent for App {
             loading: false,
             bing_market: "en-US".to_string(),
             spotlight_locale: "en-US".to_string(),
-            settings_window: None,
         };
 
         // Build widget tree manually
@@ -194,19 +192,19 @@ impl AsyncComponent for App {
         settings_btn.set_tooltip_text(Some("Preferences"));
         header.pack_end(&settings_btn);
 
-        // Create settings window
-        let settings_window = create_settings_window(
-            model.bing_market.clone(),
-            model.spotlight_locale.clone(),
-            Some(&root),
-            sender.clone(),
-        );
-        model.settings_window = Some(settings_window);
-
-        // Wire settings button
-        let settings_win = model.settings_window.as_ref().unwrap().clone();
+        // Wire settings button — recreate window each time to avoid GTK4 destroy issue
+        let settings_root = root.clone();
+        let settings_sender = sender.clone();
+        let settings_market = model.bing_market.clone();
+        let settings_locale = model.spotlight_locale.clone();
         settings_btn.connect_clicked(move |_| {
-            settings_win.present();
+            let win = create_settings_window(
+                settings_market.clone(),
+                settings_locale.clone(),
+                Some(&settings_root),
+                settings_sender.clone(),
+            );
+            win.present();
         });
 
         // Use adw::ToolbarView to hold header bar and content
