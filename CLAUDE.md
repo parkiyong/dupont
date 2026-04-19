@@ -51,4 +51,4 @@ Two-crate Cargo workspace with clean domain/UI separation:
 
 ## Planning
 
-Project plans and requirements live in `.planning/` (PAUL framework). Check `STATE.md` for current status, `ROADMAP.md` for phases.
+Project plans and requirements live in `.paul/` (PAUL framework). Check `STATE.md` for current status, `ROADMAP.md` for phases.
