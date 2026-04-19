@@ -27,7 +27,7 @@ build() {
 
 package() {
     cd "$pkgname"
-    install -Dm755 "target/release/dupont-app" "$pkgdir/usr/bin/dupont-app"
+    install -Dm755 "target/release/dupont" "$pkgdir/usr/bin/dupont"
     install -Dm644 "data/io.github.parkiyong.dupont.desktop" \
         "$pkgdir/usr/share/applications/io.github.parkiyong.dupont.desktop"
     install -Dm644 "data/icons/scalable/io.github.parkiyong.dupont.svg" \

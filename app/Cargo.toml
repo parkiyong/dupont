@@ -3,6 +3,10 @@ name = "dupont-app"
 version = "1.2.0"
 edition = "2024"
 
+[[bin]]
+name = "dupont"
+path = "src/main.rs"
+
 [dependencies]
 relm4 = { version = "0.11", features = ["libadwaita", "gnome_49"] }
 gtk = { version = "0.11", package = "gtk4" }
