@@ -14,11 +14,15 @@ All notable changes to Dupont are documented in this file.
 - Updated all packaging (AUR PKGBUILD, Flatpak manifest, .desktop file) to reflect new binary name
 - Upgraded Rust edition from 2021 to 2024 for both domain and app crates
 - Removed unnecessary filesystem permissions from Flatpak manifest (uses sandboxed XDG dirs)
+- Synced market/locale list with Damask (added en-AU, en-NZ, en-CA, en-IN, fr-CA; removed pt-BR, es-ES, it-IT, ru-RU)
 
 ### Technical
 - domain/Cargo.toml: 0.1.0 → 1.2.0
 - app/Cargo.toml: 0.1.0 → 1.2.0
 - Both crates now use Rust 2024 edition
+- Removed unused `anyhow` and `url` dependencies from domain crate
+- Trimmed `image` crate to jpeg/png/webp only (smaller binary, fewer transitive deps)
+- Removed dead widget module placeholders (controls.rs, preview.rs, settings.rs)
 
 ## [1.1.0] - 2026-04-15
 
