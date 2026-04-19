@@ -37,6 +37,7 @@
                 "cargo --offline build --release --frozen --manifest-path Cargo.toml -p dupont-domain -p dupont-app",
                 "install -Dm755 target/release/dupont /app/bin/dupont",
                 "install -Dm644 data/io.github.parkiyong.dupont.desktop /app/share/applications/io.github.parkiyong.dupont.desktop",
+                "install -Dm644 data/io.github.parkiyong.dupont.metainfo.xml /app/share/metainfo/io.github.parkiyong.dupont.metainfo.xml",
                 "install -Dm644 data/icons/scalable/io.github.parkiyong.dupont.svg /app/share/icons/hicolor/scalable/apps/io.github.parkiyong.dupont.svg",
                 "install -Dm644 data/icons/symbolic/io.github.parkiyong.dupont-symbolic.svg /app/share/icons/hicolor/symbolic/apps/io.github.parkiyong.dupont-symbolic.svg"
             ],

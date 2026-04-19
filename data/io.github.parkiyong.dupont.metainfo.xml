@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.parkiyong.dupont</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-3.0-or-later</project_license>
+  <name>Dupont</name>
+  <summary>Set your desktop wallpaper from Bing and Spotlight</summary>
+
+  <description>
+    <p>
+      Dupont is a native Linux desktop application for setting wallpapers from
+      online sources. It fetches wallpapers from Bing Wallpaper of the Day and
+      Microsoft Spotlight.
+    </p>
+    <ul>
+      <li>Fetch wallpapers from Bing Wallpaper of the Day and Microsoft Spotlight</li>
+      <li>Wallpaper preview with metadata (title, description, attribution)</li>
+      <li>Configurable Bing market and Spotlight locale</li>
+      <li>Persistent settings across sessions</li>
+    </ul>
+  </description>
+
+  <launchable type="desktop-id">io.github.parkiyong.dupont.desktop</launchable>
+
+  <screenshots>
+    <screenshot type="default">
+      <caption>Main window showing wallpaper preview</caption>
+    </screenshot>
+  </screenshots>
+
+  <url type="homepage">https://github.com/parkiyong/dupont</url>
+  <url type="bugtracker">https://github.com/parkiyong/dupont/issues</url>
+
+  <recommends>
+    <control>keyboard</control>
+    <control>pointing</control>
+    <control>touch</control>
+  </recommends>
+
+  <content_rating type="oars-1.1" />
+
+  <releases>
+    <release version="1.2.0" date="2026-04-19">
+      <description>
+        <p>GNOME Portal backend for wallpaper setting, binary renamed to dupont, Rust 2024 edition.</p>
+      </description>
+    </release>
+  </releases>
+</component>
