@@ -428,8 +428,8 @@ fn create_settings_window(
     spotlight_locale: String,
     transient_for: Option<&adw::ApplicationWindow>,
     sender: relm4::AsyncComponentSender<App>,
-) -> adw::PreferencesWindow {
-    let window = adw::PreferencesWindow::new();
+) -> adw::Window {
+    let window = adw::Window::new();
 
     if let Some(parent) = transient_for {
         window.set_transient_for(Some(parent));
@@ -437,6 +437,13 @@ fn create_settings_window(
 
     window.set_title(Some("Damask Preferences"));
     window.set_modal(true);
+    window.set_default_size(400, 380);
+
+    let header = adw::HeaderBar::new();
+    header.set_show_end_title_buttons(true);
+
+    let toolbar = adw::ToolbarView::new();
+    toolbar.add_top_bar(&header);
 
     let markets = [
         "en-US", "zh-CN", "ja-JP", "en-GB", "fr-FR", "de-DE", "pt-BR", "es-ES", "it-IT",
@@ -505,7 +512,8 @@ fn create_settings_window(
     spotlight_group.add(&locale_entry);
     page.add(&bing_group);
     page.add(&spotlight_group);
-    window.add(&page);
+    toolbar.set_content(Some(&page));
+    window.set_content(Some(&toolbar));
 
     window
 }
