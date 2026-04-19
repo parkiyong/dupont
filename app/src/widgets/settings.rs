@@ -48,20 +48,21 @@ impl SimpleComponent for SettingsComponent {
         };
 
         let markets = [
-            "en-US", "zh-CN", "ja-JP", "en-GB", "fr-FR", "de-DE", "pt-BR", "es-ES", "it-IT",
-            "ru-RU",
+            "en-US", "zh-CN", "ja-JP", "en-AU", "en-GB", "de-DE", "en-NZ", "en-CA", "en-IN",
+            "fr-FR", "fr-CA",
         ];
         let market_names = [
-            "English (US)",
+            "English (United States)",
             "Chinese (Simplified)",
-            "Japanese",
-            "English (UK)",
-            "French",
-            "German",
-            "Portuguese (Brazil)",
-            "Spanish",
-            "Italian",
-            "Russian",
+            "Japanese (Japan)",
+            "English (Australia)",
+            "English (United Kingdom)",
+            "German (Germany)",
+            "English (New Zealand)",
+            "English (Canada)",
+            "English (India)",
+            "French (France)",
+            "French (Canada)",
         ];
         let market_list = gtk::StringList::new(&market_names);
         let initial_index = markets
