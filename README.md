@@ -26,6 +26,8 @@ cd dupont
 makepkg -si
 ```
 
+Then run: `dupont`
+
 ### Build from source
 
 Requires Rust stable, GTK4, and libadwaita.
@@ -34,7 +36,7 @@ Requires Rust stable, GTK4, and libadwaita.
 git clone https://github.com/parkiyong/dupont.git
 cd dupont
 cargo build --release
-./target/release/dupont-app
+./target/release/dupont
 ```
 
 ### Flatpak (manual build)
@@ -50,9 +52,11 @@ flatpak run io.github.parkiyong.dupont
 
 ## Usage
 
-1. Select a wallpaper source (Bing or Spotlight) from the dropdown
-2. Click **Refresh** to fetch and apply a new wallpaper
-3. Open **Settings** to configure Bing market or Spotlight locale
+1. Launch the app: `dupont`
+2. Select a wallpaper source (Bing or Spotlight) from the dropdown
+3. Click **Refresh** to fetch and apply a new wallpaper
+4. Open **Settings** to configure Bing market or Spotlight locale
+5. The wallpaper persists across sessions
 
 ## Tech Stack
 
