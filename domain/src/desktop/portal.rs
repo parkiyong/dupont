@@ -1,24 +1,21 @@
+use std::fs::File;
+use std::os::fd::AsFd;
 use std::path::{Path, PathBuf};
 
 use async_trait::async_trait;
+use ashpd::desktop::wallpaper::{SetOn, WallpaperRequest};
 use crate::desktop::DesktopEnvironment;
 use crate::error::DEError;
 
-/// GNOME Desktop Environment backend using GSettings with dconf.
+/// GNOME Desktop Environment backend using the Wallpaper Portal.
 ///
-/// This backend uses GSettings to set wallpapers via the org.gnome.desktop.background schema.
-/// Requires dconf/GSettings access (works in Flatpak with proper permissions).
+/// Uses the freedesktop.org Wallpaper Portal (org.freedesktop.portal.Wallpaper)
+/// via ashpd. Works in both native and Flatpak sandboxed environments.
 pub struct PortalDE;
 
 #[async_trait]
 impl DesktopEnvironment for PortalDE {
     async fn set_wallpaper(&self, image_path: &Path) -> Result<(), DEError> {
-        use gio::prelude::SettingsExt;
-
-        let path_str = image_path
-            .to_str()
-            .ok_or_else(|| DEError::SetError("Invalid image path".to_string()))?;
-
         // Verify the image file exists
         if !image_path.exists() {
             return Err(DEError::SetError(
@@ -26,44 +23,30 @@ impl DesktopEnvironment for PortalDE {
             ));
         }
 
-        // Convert to file:// URI for GSettings
-        let uri = format!("file://{}", path_str);
+        // Open the file and pass it to the portal
+        let file = File::open(image_path).map_err(|e| {
+            DEError::SetError(format!("Failed to open image file: {}", e))
+        })?;
 
-        let settings = gio::Settings::new("org.gnome.desktop.background");
-
-        // Set wallpaper for light mode
-        settings
-            .set_string("picture-uri", &uri)
+        WallpaperRequest::default()
+            .set_on(SetOn::Both)
+            .show_preview(false)
+            .build_file(&file.as_fd())
+            .await
             .map_err(|e| {
-                DEError::SetError(format!("Failed to set light wallpaper: {}", e))
+                DEError::SetError(format!("Failed to set wallpaper via portal: {}", e))
             })?;
-
-        // Set wallpaper for dark mode (optional, may fail on some systems)
-        let _ = settings.set_string("picture-uri-dark", &uri);
 
         Ok(())
     }
 
     fn get_current_wallpaper(&self) -> Result<Option<PathBuf>, DEError> {
-        use gio::prelude::SettingsExt;
-
-        let settings = gio::Settings::new("org.gnome.desktop.background");
-        let uri = settings.string("picture-uri").to_string();
-
-        if uri.is_empty() {
-            return Ok(None);
-        }
-
-        // Convert file:// URI back to path
-        if let Some(path) = uri.strip_prefix("file://") {
-            return Ok(Some(PathBuf::from(path)));
-        }
-
+        // Wallpaper Portal doesn't support querying current wallpaper
         Ok(None)
     }
 
     fn name(&self) -> &'static str {
-        "GNOME Portal"
+        "Wallpaper Portal"
     }
 
     fn is_available(&self) -> bool {
