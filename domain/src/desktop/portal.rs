@@ -4,10 +4,10 @@ use async_trait::async_trait;
 use crate::desktop::DesktopEnvironment;
 use crate::error::DEError;
 
-/// GNOME Desktop Environment backend using GSettings.
+/// GNOME Desktop Environment backend using GSettings with dconf.
 ///
 /// This backend uses GSettings to set wallpapers via the org.gnome.desktop.background schema.
-/// Works on GNOME and other desktop environments that support GSettings portals.
+/// Requires dconf/GSettings access (works in Flatpak with proper permissions).
 pub struct PortalDE;
 
 #[async_trait]
@@ -38,12 +38,8 @@ impl DesktopEnvironment for PortalDE {
                 DEError::SetError(format!("Failed to set light wallpaper: {}", e))
             })?;
 
-        // Set wallpaper for dark mode
-        settings
-            .set_string("picture-uri-dark", &uri)
-            .map_err(|e| {
-                DEError::SetError(format!("Failed to set dark wallpaper: {}", e))
-            })?;
+        // Set wallpaper for dark mode (optional, may fail on some systems)
+        let _ = settings.set_string("picture-uri-dark", &uri);
 
         Ok(())
     }
@@ -71,8 +67,6 @@ impl DesktopEnvironment for PortalDE {
     }
 
     fn is_available(&self) -> bool {
-        // Assume available on GNOME/portal-compatible systems
-        // Actual error will occur during set_wallpaper if unavailable
         true
     }
 }

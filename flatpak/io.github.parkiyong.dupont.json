@@ -24,7 +24,7 @@
         "--device=dri",
         "--filesystem=~/.config/dupont:create",
         "--filesystem=~/.cache/dupont:create",
-        "--filesystem=xdg-config/dconf:ro",
+        "--filesystem=xdg-config/dconf:rw",
         "--talk-name=org.freedesktop.portal.Desktop",
         "--talk-name=ca.desrt.dconf"
     ],
