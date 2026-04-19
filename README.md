@@ -52,7 +52,7 @@ Or build from source (requires flatpak-builder and GNOME 49 SDK):
 ```bash
 flatpak install flathub org.gnome.Platform//49 org.gnome.Sdk//49 org.freedesktop.Sdk.Extension.rust-stable//25.08
 cd flatpak
-flatpak-builder --user --install --force-clean --default-branch=stable repo io.github.parkiyong.dupont.json
+flatpak-builder --user --install --force-clean --default-branch=stable build-dir io.github.parkiyong.dupont.json
 flatpak run io.github.parkiyong.dupont
 ```
 
