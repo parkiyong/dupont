@@ -22,6 +22,8 @@ target
 # Flatpak
 .flatpak-builder/
 flatpak/build-dir/
+flatpak/repo/
+flatpak/*.flatpak
 .flatpak/
 
 # IDE / Editor
