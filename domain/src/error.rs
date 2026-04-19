@@ -50,6 +50,9 @@ pub enum DEError {
     #[error("GSettings schema not found: {schema}")]
     SchemaNotFound { schema: String },
 
+    #[error("Wallpaper portal not available")]
+    PortalUnavailable,
+
     #[error("Failed to detect desktop environment")]
     DetectionFailed,
 }
@@ -138,6 +141,7 @@ mod tests {
             DEError::SchemaNotFound {
                 schema: "org.test.schema".into(),
             },
+            DEError::PortalUnavailable,
             DEError::DetectionFailed,
         ];
 

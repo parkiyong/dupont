@@ -1,6 +1,8 @@
 use std::fs;
 use std::path::{Path, PathBuf};
 
+use async_trait::async_trait;
+
 use crate::desktop::DesktopEnvironment;
 use crate::error::DEError;
 
@@ -75,8 +77,9 @@ impl CosmicDE {
     }
 }
 
+#[async_trait]
 impl DesktopEnvironment for CosmicDE {
-    fn set_wallpaper(&self, image_path: &Path) -> Result<(), DEError> {
+    async fn set_wallpaper(&self, image_path: &Path) -> Result<(), DEError> {
         // Verify the image file exists before writing config
         if !image_path.exists() {
             return Err(DEError::SetError(format!(

@@ -18,10 +18,13 @@
     },
     "finish-args": [
         "--share=network",
+        "--share=ipc",
+        "--socket=fallback-x11",
+        "--socket=wayland",
+        "--device=dri",
         "--filesystem=~/.config/dupont:create",
         "--filesystem=~/.cache/dupont:create",
-        "--socket=fallback-x11",
-        "--device=dri"
+        "--talk-name=org.freedesktop.portal.Desktop"
     ],
     "cleanup": [
         "/include",
@@ -43,7 +46,7 @@
                 {
                     "type": "git",
                     "url": "https://github.com/parkiyong/dupont.git",
-                    "tag": "v1.1"
+                    "tag": "v1.2"
                 },
                 {
                     "type": "inline",

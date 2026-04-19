@@ -380,7 +380,7 @@ impl AsyncComponent for App {
                 set_button_child_label(&widgets.refresh_button, "Refresh Wallpaper");
                 match domain::create_desktop_backend() {
                     Ok(backend) => {
-                        if let Err(e) = backend.set_wallpaper(&cache_path) {
+                        if let Err(e) = backend.set_wallpaper(&cache_path).await {
                             eprintln!("Failed to set wallpaper: {}", e);
                         }
                     }

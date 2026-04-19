@@ -1,16 +1,18 @@
 use std::path::{Path, PathBuf};
 
+use async_trait::async_trait;
 use crate::error::DEError;
 
 mod cosmic;
-mod gnome;
+mod portal;
 pub use cosmic::CosmicDE;
-pub use gnome::GnomeDE;
+pub use portal::PortalDE;
 
 /// Trait for desktop environment wallpaper setting operations
+#[async_trait]
 pub trait DesktopEnvironment: Send + Sync {
     /// Set the desktop wallpaper to the specified image path
-    fn set_wallpaper(&self, image_path: &Path) -> Result<(), DEError>;
+    async fn set_wallpaper(&self, image_path: &Path) -> Result<(), DEError>;
 
     /// Get the current desktop wallpaper path (if available)
     fn get_current_wallpaper(&self) -> Result<Option<PathBuf>, DEError>;
@@ -51,10 +53,10 @@ pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> 
         if backend.is_available() {
             return Ok(Box::new(backend));
         }
-        // Fallback: try GNOME if COSMIC backend unavailable
-        let gnome = GnomeDE;
-        if gnome.is_available() {
-            return Ok(Box::new(gnome));
+        // Fallback: try portal if COSMIC backend unavailable
+        let portal = PortalDE;
+        if portal.is_available() {
+            return Ok(Box::new(portal));
         }
     }
 
@@ -65,13 +67,11 @@ pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> 
         || de.contains("unity")
         || de.contains("pop")
     {
-        let backend = GnomeDE;
+        let backend = PortalDE;
         if backend.is_available() {
             return Ok(Box::new(backend));
         } else {
-            return Err(DEError::SchemaNotFound {
-                schema: "org.gnome.desktop.background".to_string(),
-            });
+            return Err(DEError::PortalUnavailable);
         }
     }
 
@@ -134,7 +134,7 @@ mod tests {
             Err(DEError::UnsupportedDE { .. }) => {
                 panic!("cosmic should not produce UnsupportedDE");
             }
-            _ => {} // Acceptable: Ok(CosmicDE), SchemaNotFound (fallback gnome unavailable), etc.
+            _ => {} // Acceptable: Ok(CosmicDE), PortalUnavailable (fallback portal unavailable), etc.
         }
 
         // 2. Unknown DE "i3" should produce UnsupportedDE
