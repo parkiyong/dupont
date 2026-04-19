@@ -1,0 +1,54 @@
+{
+    "app-id": "io.github.parkiyong.dupont",
+    "runtime": "org.gnome.Platform",
+    "runtime-version": "47",
+    "sdk": "org.gnome.Sdk",
+    "command": "dupont-app",
+    "finish-args": [
+        "--share=network",
+        "--filesystem=~/.config/dupont:create",
+        "--filesystem=~/.cache/dupont:create",
+        "--socket=fallback-x11",
+        "--device=dri"
+    ],
+    "cleanup": [
+        "/include",
+        "*.a",
+        "/lib/debug"
+    ],
+    "modules": [
+        {
+            "name": "rust",
+            "buildsystem": "simple",
+            "cleanup": [
+                "*"
+            ],
+            "build-commands": [
+                "cargo --offline fetch --locked --manifest-path Cargo.toml",
+                "cargo --offline build --release --frozen --manifest-path Cargo.toml -p dupont-domain -p dupont-app"
+            ],
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": "."
+                }
+            ]
+        },
+        {
+            "name": "dupont",
+            "buildsystem": "simple",
+            "build-commands": [
+                "install -Dm755 target/release/dupont-app /app/bin/dupont-app",
+                "install -Dm644 data/io.github.parkiyong.dupont.desktop /app/share/applications/io.github.parkiyong.dupont.desktop",
+                "install -Dm644 data/icons/scalable/io.github.parkiyong.dupont.svg /app/share/icons/hicolor/scalable/apps/io.github.parkiyong.dupont.svg",
+                "install -Dm644 data/icons/symbolic/io.github.parkiyong.dupont-symbolic.svg /app/share/icons/hicolor/symbolic/apps/io.github.parkiyong.dupont-symbolic.svg"
+            ],
+            "sources": [
+                {
+                    "type": "dir",
+                    "path": "."
+                }
+            ]
+        }
+    ]
+}
