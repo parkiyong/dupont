@@ -40,7 +40,7 @@ struct CacheEntry {
 
 /// Image cache manager with LRU eviction
 ///
-/// Stores downloaded wallpapers in `~/.cache/damask/` with configurable
+/// Stores downloaded wallpapers in `~/.cache/dupont/` with configurable
 /// size, count, and age limits. Enforces LRU eviction when limits are exceeded.
 pub struct Cache {
     cache_dir: PathBuf,
@@ -51,11 +51,11 @@ pub struct Cache {
 impl Cache {
     /// Create a new cache manager with the given configuration
     ///
-    /// Creates cache directory at `~/.cache/damask/` if it doesn't exist.
+    /// Creates cache directory at `~/.cache/dupont/` if it doesn't exist.
     pub fn new(config: CacheConfig) -> Result<Self, CacheError> {
         let cache_dir = dirs::cache_dir()
             .ok_or(CacheError::NotAccessible)?
-            .join("damask");
+            .join("dupont");
 
         std::fs::create_dir_all(&cache_dir).map_err(CacheError::IoError)?;
 

@@ -91,7 +91,7 @@ impl SimpleComponent for SettingsComponent {
         page.add(&bing_group);
         page.add(&spotlight_group);
         root.add(&page);
-        root.set_title(Some("Damask Preferences"));
+        root.set_title(Some("Dupont Preferences"));
         root.set_modal(true);
 
         let sender_apply = sender.output_sender().clone();

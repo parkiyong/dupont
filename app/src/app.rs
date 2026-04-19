@@ -53,7 +53,7 @@ impl AsyncComponent for App {
 
     fn init_root() -> Self::Root {
         adw::ApplicationWindow::builder()
-            .title("Damask")
+            .title("Dupont")
             .default_width(480)
             .default_height(520)
             .build()
@@ -435,7 +435,7 @@ fn create_settings_window(
         window.set_transient_for(Some(parent));
     }
 
-    window.set_title(Some("Damask Preferences"));
+    window.set_title(Some("Dupont Preferences"));
     window.set_modal(true);
     window.set_default_size(400, 380);
 

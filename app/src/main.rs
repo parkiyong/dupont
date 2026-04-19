@@ -6,6 +6,6 @@ mod messages;
 mod widgets;
 
 fn main() {
-    let app = RelmApp::new("com.damask.Wallpaper");
+    let app = RelmApp::new("io.github.parkiyong.dupont");
     app.run_async::<app::App>(());
 }

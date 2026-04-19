@@ -32,6 +32,11 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **UI-05**: GTK-rs UI displays error toasts for all failures (network, decode, set errors)
 - [ ] **UI-06**: GTK-rs UI provides settings window for source-specific configuration (Bing market, Spotlight locale)
 
+### Packaging
+
+- [ ] **PKG-01**: Flatpak package with sandbox permissions for wallpaper setting
+- [ ] **PKG-02**: Arch Linux AUR package (PKGBUILD)
+
 ## v2 Requirements
 
 Deferred to future release. Tracked but not in current roadmap.
@@ -43,6 +48,10 @@ Deferred to future release. Tracked but not in current roadmap.
 - **UI-08**: GTK-rs UI provides background mode toggle (run without window)
 - **UI-09**: GTK-rs UI allows opening wallpaper source URL in browser
 - **DESK-05**: Application sets different wallpapers per monitor (multi-monitor support)
+
+### Packaging
+
+- **PKG-03**: Snap package with desktop plug for GSettings access
 
 ### COSMIC Native
 
@@ -61,7 +70,7 @@ Explicitly excluded. Documented to prevent scope creep.
 | Image editing/cropping | Adds complexity; users expect photo editor features; out of scope |
 | Social features (sharing, favorites) | Requires backend, user accounts, privacy concerns; out of scope |
 | NSFW content support | Legal/compliance issues, violates safety norms; keep family-friendly |
-| Flatpak packaging | Local development only for MVP; defer to v1.x |
+| Snap packaging | Defer to v2; AUR and Flatpak cover main distros for v1 |
 | Unit tests | No test coverage in v1 per user constraints; prioritize working MVP |
 | Other desktop environments | Only GNOME and COSMIC; other DEs (XFCE, KDE) out of scope |
 

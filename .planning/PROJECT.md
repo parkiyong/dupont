@@ -1,8 +1,8 @@
-# Damask-rs
+# Dupont
 
 ## What This Is
 
-Damask-rs is a Rust port of the Damask wallpaper application for Linux desktop environments. It automatically fetches and sets desktop wallpapers from various online sources. The initial release targets GNOME and COSMIC desktop environments, starting with Microsoft Bing Wallpaper of the Day and Microsoft Spotlight as the supported wallpaper sources.
+Dupont is a Rust desktop wallpaper application for Linux desktop environments. It automatically fetches and sets desktop wallpapers from various online sources. The initial release targets GNOME and COSMIC desktop environments, starting with Microsoft Bing Wallpaper of the Day and Microsoft Spotlight as the supported wallpaper sources.
 
 ## Core Value
 
@@ -28,6 +28,8 @@ Users can automatically set their desktop wallpaper from online sources (Bing, S
 - ✓ Configuration persists source preferences across sessions — Validated in Phase 4
 - ✓ Application includes desktop file for app menu integration — Validated in Phase 4
 - ✓ Application includes appropriate icon — Validated in Phase 4
+- ✓ Flatpak package with sandbox permissions — Validated in Phase 5
+- ✓ Arch Linux AUR package (PKGBUILD) — Validated in Phase 5
 
 ### Active
 
@@ -35,14 +37,14 @@ Users can automatically set their desktop wallpaper from online sources (Bing, S
 
 ### Out of Scope
 
-- [All other Damask sources] — Wallhaven, NASA APOD, Unsplash, EarthView, local files defer to v2
+- [All other wallpaper sources] — Wallhaven, NASA APOD, Unsplash, EarthView, local files defer to v2
 - [Automatic refresh] — Manual refresh only for MVP
 - [Flatpak packaging] — Local development only for MVP
 - [Other desktop environments] — Only GNOME and COSMIC
 
 ## Context
 
-Damask-rs is a learning project to gain experience with Rust GUI development while building a useful desktop application. The original Damask is written in Vala/GTK and serves as the reference implementation. The project emphasizes clean architecture with a clear separation between the core wallpaper engine (fetching, caching, setting backgrounds) and the UI layer, enabling future portability to other UI toolkits like Iced or web-based frontends. As a Rust GUI beginner, the focus is on getting working software quickly while establishing good patterns for future expansion.
+Dupont is a learning project to gain experience with Rust GUI development while building a useful desktop application. Inspired by the Damask wallpaper application (written in Vala/GTK). The project emphasizes clean architecture with a clear separation between the core wallpaper engine (fetching, caching, setting backgrounds) and the UI layer, enabling future portability to other UI toolkits like Iced or web-based frontends. As a Rust GUI beginner, the focus is on getting working software quickly while establishing good patterns for future expansion.
 
 ## Constraints
 
@@ -58,7 +60,7 @@ Damask-rs is a learning project to gain experience with Rust GUI development whi
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| GTK-rs for v1 | Original Damask is GTK, mature bindings, native GNOME experience | — Pending |
+| GTK-rs for v1 | Mature bindings, native GNOME experience | — Pending |
 | Clean engine/UI separation | Enables future UI toolkit swap (Iced for COSMIC), better architecture | ✓ Good |
 | Bing + Spotlight only | Reduces complexity for MVP, two most reliable API sources | — Pending |
 | Manual refresh only | Automatic refresh adds complexity (timers, background services) | — Pending |
@@ -83,4 +85,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-19 after Phase 4 (Integration and Polish) — v1.0 milestone complete*
+*Last updated: 2026-04-19 after Phase 5 (Packaging) — v1.1 milestone complete*

@@ -154,7 +154,7 @@ mod tests {
     /// Returns (temp_dir_path, image_path). Caller is responsible for cleanup.
     fn setup_temp_image() -> (PathBuf, PathBuf) {
         let n = COUNTER.fetch_add(1, Ordering::Relaxed);
-        let tmp = std::env::temp_dir().join(format!("damask_cosmic_test_{}", n));
+        let tmp = std::env::temp_dir().join(format!("dupont_cosmic_test_{}", n));
         fs::create_dir_all(&tmp).expect("failed to create temp dir");
         let image_path = tmp.join("test_wallpaper.jpg");
         fs::write(&image_path, b"fake-image-data").expect("failed to write temp image");
@@ -231,7 +231,7 @@ mod tests {
 
         // --- Sub-test 2: Roundtrip with special characters in path ---
         let n = COUNTER.fetch_add(1, Ordering::Relaxed);
-        let tmp2 = std::env::temp_dir().join(format!("damask_cosmic_special_{}", n));
+        let tmp2 = std::env::temp_dir().join(format!("dupont_cosmic_special_{}", n));
         fs::create_dir_all(&tmp2).expect("failed to create temp dir");
         let special_path = tmp2.join("my wallpaper's image.jpg");
         fs::write(&special_path, b"fake-data").expect("failed to write temp image");

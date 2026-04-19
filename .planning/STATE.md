@@ -1,24 +1,24 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
+milestone: v1.1
 milestone_name: milestone
-current_phase: 04
+current_phase: 05
 current_plan: 0
-status: milestone-complete
-last_updated: "2026-04-19T15:00:00.000Z"
+status: apply-complete
+last_updated: "2026-04-19T16:00:00.000Z"
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 9
-  completed_plans: 9
-  percent: 100
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 2
+  completed_plans: 0
+  percent: 0
 ---
 
-# State: Damask-rs
+# State: Dupont
 
 **Initialized:** 2026-04-13
-**Current Phase:** 04 (integration-and-polish) — COMPLETE
-**Current Status:** v1.0 milestone complete — all 4 phases finished
+**Current Phase:** 05 (packaging) — COMPLETE
+**Current Status:** v1.1 milestone complete
 
 ## Project Reference
 
@@ -39,18 +39,15 @@ Linux desktop application (wallpaper manager) with GTK UI
 
 ## Current Position
 
-Phase: 04 of 4 (integration-and-polish) — COMPLETE
+Phase: 05 of 5 (packaging) — COMPLETE
 Plan: All plans complete
-Status: v1.0 milestone complete
+Status: v1.1 milestone complete
 
 **Progress Bar:**
 
 ```
-Phase 1: [██████████] 100%
-Phase 2: [██████████] 100%
-Phase 3: [██████████] 100%
-Phase 4: [██████████] 100%
-Overall: [██████████] 100%
+Phase 5: [██████████] 100% (v1.1)
+Overall: [██████████] 100% (v1.1)
 ```
 
 ## Loop Position
@@ -58,7 +55,7 @@ Overall: [██████████] 100%
 Current loop state:
 ```
 PLAN ──▶ APPLY ──▶ UNIFY
-  ✓        ✓        ✓     [Phase 4 complete — milestone done]
+  ✓        ✓        ✓     [Phase 5 complete — v1.1 milestone done]
 ```
 
 ## Milestone History
@@ -82,16 +79,35 @@ Fixes applied:
 **Scope:** Phase 4 — Config persistence and desktop integration
 
 Changes:
-- Config persistence via ~/.config/damask/config.json (bing_market, spotlight_locale, active_source)
-- Desktop entry file (data/com.damask.Wallpaper.desktop)
+- Config persistence via ~/.config/dupont/config.json (bing_market, spotlight_locale, active_source)
+- Desktop entry file (data/io.github.parkiyong.dupont.desktop)
 - Scalable and symbolic app icons (SVG)
 - All 16 v1 requirements validated
 
+### M4 — Post-release fixes (2026-04-19)
+**Scope:** Deprecated API migration, settings UI enhancement, rename to Dupont
+
+Changes:
+- Migrated settings window from deprecated adw::PreferencesWindow to adw::Window
+- Replaced Spotlight locale text entry with dropdown (country names)
+- Renamed project from Damask/damask-rs to Dupont/dupont
+- Updated app ID to io.github.parkiyong.dupont
+- Updated config/cache directories to ~/.config/dupont and ~/.cache/dupont
+
+### M5 — Packaging (2026-04-19)
+**Scope:** Phase 5 — Flatpak and AUR packages (v1.1 milestone)
+
+Changes:
+- Flatpak manifest (GNOME 47 runtime/sdk) with proper sandbox permissions
+- flatpak-builder YAML for local testing
+- Arch Linux AUR PKGBUILD (source build from git tag)
+- Desktop file and icons bundled in both packages
+
 ## Session Continuity
 
-**Last Action:** Phase 4 complete, v1.0 milestone finished
-**Next Recommended Action:** Commit Phase 4 changes, or start next milestone
+**Last Action:** Phase 5 complete, v1.1 milestone finished
+**Next Recommended Action:** Test Flatpak/AUR builds, or start v2 milestone
 **Resume file:** .planning/ROADMAP.md
 
 ---
-*Last updated: 2026-04-19 after Phase 4 transition — v1.0 milestone complete*
+*Last updated: 2026-04-19 — v1.1 milestone complete*

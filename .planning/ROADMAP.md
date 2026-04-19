@@ -1,4 +1,4 @@
-# Roadmap: Damask-rs
+# Roadmap: Dupont
 
 **Defined:** 2026-04-13
 **Core Value:** Users can automatically set their desktop wallpaper from online sources (Bing, Spotlight) with a simple, native Linux application.
@@ -9,6 +9,7 @@
 - [x] **Phase 2: Desktop Environment Integration** - GNOME and COSMIC wallpaper setting APIs (completed 2026-04-14)
 - [x] **Phase 3: UI Layer Implementation** - GTK widgets for user interaction (completed 2026-04-19)
 - [x] **Phase 4: Integration and Polish** - Application wiring and packaging (completed 2026-04-19)
+- [x] **Phase 5: Packaging** - Flatpak and AUR packages (completed 2026-04-19)
 
 ## Phase Details
 
@@ -78,6 +79,20 @@
 - [x] 04-01-PLAN.md — Config persistence with save/load via serde + dirs
 - [x] 04-02-PLAN.md — Desktop entry file and app icons
 
+### Phase 5: Packaging (v1.1 milestone)
+**Goal**: Application is distributable via Flatpak and Arch Linux AUR
+**Depends on**: Phase 1, Phase 2, Phase 3, Phase 4
+**Requirements**: PKG-01, PKG-02
+**Milestone**: v1.1
+**Success Criteria** (what must be TRUE):
+  1. Flatpak package builds and runs with proper sandbox permissions
+  2. AUR PKGBUILD builds and installs the binary correctly
+**Plans**: 2 plans (planned)
+
+**Plan List:**
+- [x] 05-01-PLAN.md — Flatpak package manifest
+- [x] 05-02-PLAN.md — Arch Linux AUR PKGBUILD
+
 ## Progress
 
 | Phase | Plans Complete | Status | Completed |
@@ -86,6 +101,7 @@
 | 2. Desktop Environment Integration | 2/2 | Complete    | 2026-04-14 |
 | 3. UI Layer Implementation | 2/2 | Complete    | 2026-04-19 |
 | 4. Integration and Polish | 2/2 | Complete | 2026-04-19 |
+| 5. Packaging | 2/2 | Complete | 2026-04-19 |
 
 ---
 *Roadmap created: 2026-04-13*

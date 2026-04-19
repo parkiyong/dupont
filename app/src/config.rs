@@ -22,11 +22,11 @@ impl Default for Config {
 }
 
 impl Config {
-    /// Returns the path to the config file: `$XDG_CONFIG_HOME/damask/config.json`.
+    /// Returns the path to the config file: `$XDG_CONFIG_HOME/dupont/config.json`.
     pub fn config_path() -> PathBuf {
         dirs::config_dir()
             .unwrap_or_else(|| PathBuf::from("."))
-            .join("damask")
+            .join("dupont")
             .join("config.json")
     }
 

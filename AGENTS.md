@@ -1,9 +1,9 @@
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**Damask-rs**
+**Dupont**
 
-Damask-rs is a Rust port of the Damask wallpaper application for Linux desktop environments. It automatically fetches and sets desktop wallpapers from various online sources. The initial release targets GNOME and COSMIC desktop environments, starting with Microsoft Bing Wallpaper of the Day and Microsoft Spotlight as the supported wallpaper sources.
+Dupont is a Rust desktop wallpaper application for Linux desktop environments. It automatically fetches and sets desktop wallpapers from various online sources. The initial release targets GNOME and COSMIC desktop environments, starting with Microsoft Bing Wallpaper of the Day and Microsoft Spotlight as the supported wallpaper sources.
 
 **Core Value:** Users can automatically set their desktop wallpaper from online sources (Bing, Spotlight) with a simple, native Linux application.
 
@@ -12,7 +12,7 @@ Damask-rs is a Rust port of the Damask wallpaper application for Linux desktop e
 - **UI Toolkit**: GTK-rs for v1 — Must be easily swappable to Iced or other toolkits later via clean architecture
 - **Desktop Environments**: GNOME and COSMIC only — Must handle wallpaper setting APIs for both DEs
 - **Timeline**: Weeks — MVP must be working quickly, prioritize completion over features
-- **Sources**: Only Bing and Spotlight — Original Damask has 8+ sources, defer all others
+- **Sources**: Only Bing and Spotlight for v1
 - **Testing**: No test coverage in v1 — Skip unit tests to focus on getting software working
 - **Learning Focus**: Beginner-friendly code structure — Avoid over-optimizations, prioritize clarity
 - **Scope**: Minimal MVP — Basic fetch and set wallpaper functionality with simple UI, no advanced features

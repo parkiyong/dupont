@@ -320,38 +320,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "460fbee9c2c2f33933d720630a6a0bac33ba7053db5344fac858d4b8952d77d5"
 
 [[package]]
-name = "damask-app"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "damask-domain",
- "dirs",
- "gio 0.20.12",
- "gtk4",
- "libadwaita",
- "relm4",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "damask-domain"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "dirs",
- "gio 0.20.12",
- "image",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
-]
-
-[[package]]
 name = "dirs"
 version = "5.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -381,6 +349,38 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn",
+]
+
+[[package]]
+name = "dupont-app"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "dirs",
+ "dupont-domain",
+ "gio 0.20.12",
+ "gtk4",
+ "libadwaita",
+ "relm4",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
+name = "dupont-domain"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "dirs",
+ "gio 0.20.12",
+ "image",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.18",
+ "tokio",
 ]
 
 [[package]]

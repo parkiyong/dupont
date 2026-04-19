@@ -1,5 +1,5 @@
 [package]
-name = "damask-app"
+name = "dupont-app"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,7 +7,7 @@ edition = "2024"
 relm4 = { version = "0.11", features = ["libadwaita", "gnome_49"] }
 gtk = { version = "0.11", package = "gtk4" }
 adw = { version = "0.9", package = "libadwaita" }
-domain = { path = "../domain", package = "damask-domain" }
+domain = { path = "../domain", package = "dupont-domain" }
 gio = { workspace = true }
 tokio = { workspace = true }
 serde = { workspace = true }

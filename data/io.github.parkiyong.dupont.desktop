@@ -1,10 +1,10 @@
 [Desktop Entry]
 Type=Application
-Name=Damask
+Name=Dupont
 Comment=Set your desktop wallpaper from Bing and Spotlight
-Exec=damask-app
-Icon=com.damask.Wallpaper
+Exec=dupont-app
+Icon=io.github.parkiyong.dupont
 Categories=GNOME;GTK;Utility;DesktopSettings;
 Keywords=wallpaper;background;bing;spotlight;
 StartupNotify=true
-StartupWMClass=com.damask.Wallpaper
+StartupWMClass=io.github.parkiyong.dupont
