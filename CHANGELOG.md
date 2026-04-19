@@ -5,15 +5,15 @@ All notable changes to Dupont are documented in this file.
 ## [1.2.0] - 2026-04-19
 
 ### Added
-- GNOME Portal backend for wallpaper setting (uses GSettings org.gnome.desktop.background)
-- Support for both light and dark mode wallpaper settings
-- Rust 2024 edition for modern language features (async closures, refined match patterns)
+- Wallpaper Portal backend via ashpd (org.freedesktop.portal.Wallpaper) for Flatpak compatibility
+- AppStream metadata for software center integration
+- Rust 2024 edition for modern language features
 
 ### Changed
 - Binary renamed from `dupont-app` to `dupont` for simpler command-line invocation
-- Updated all packaging (AUR PKGBUILD, Flatpak manifest) to reflect new binary name
+- Updated all packaging (AUR PKGBUILD, Flatpak manifest, .desktop file) to reflect new binary name
 - Upgraded Rust edition from 2021 to 2024 for both domain and app crates
-- Fixed .gitignore to properly exclude only root-level AUR build directories
+- Removed unnecessary filesystem permissions from Flatpak manifest (uses sandboxed XDG dirs)
 
 ### Technical
 - domain/Cargo.toml: 0.1.0 → 1.2.0
