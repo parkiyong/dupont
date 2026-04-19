@@ -467,10 +467,6 @@ fn create_settings_window(
         .position(|&m| m == bing_market)
         .unwrap_or(0) as u32;
 
-    let locale_entry = adw::EntryRow::new();
-    locale_entry.set_title("Locale");
-    locale_entry.set_text(&spotlight_locale);
-
     let page = adw::PreferencesPage::new();
 
     let bing_group = adw::PreferencesGroup::new();
@@ -484,23 +480,34 @@ fn create_settings_window(
     let spotlight_group = adw::PreferencesGroup::new();
     spotlight_group.set_title("Spotlight");
 
+    let locale_list = gtk::StringList::new(&market_names);
+    let locale_initial_index = markets
+        .iter()
+        .position(|&m| m == spotlight_locale)
+        .unwrap_or(0) as u32;
+
+    let locale_row = adw::ComboRow::new();
+    locale_row.set_title("Locale");
+    locale_row.set_model(Some(&locale_list));
+    locale_row.set_selected(locale_initial_index);
+
     // Wire market selection → send SettingsChanged
     let sender1 = sender.clone();
-    let locale_entry_clone = locale_entry.clone();
+    let locale_row_clone1 = locale_row.clone();
     market_row.connect_selected_notify(move |row| {
         let market = markets[row.selected() as usize].to_string();
-        let locale = locale_entry_clone.text().to_string();
+        let locale = markets[locale_row_clone1.selected() as usize].to_string();
         sender1.input(AppMsg::SettingsChanged {
             bing_market: market,
             spotlight_locale: locale,
         });
     });
 
-    // Wire locale entry → send SettingsChanged
+    // Wire locale selection → send SettingsChanged
     let sender2 = sender.clone();
     let market_row_clone = market_row.clone();
-    locale_entry.connect_changed(move |entry| {
-        let locale = entry.text().to_string();
+    locale_row.connect_selected_notify(move |row| {
+        let locale = markets[row.selected() as usize].to_string();
         let market = markets[market_row_clone.selected() as usize].to_string();
         sender2.input(AppMsg::SettingsChanged {
             bing_market: market,
@@ -509,7 +516,7 @@ fn create_settings_window(
     });
 
     bing_group.add(&market_row);
-    spotlight_group.add(&locale_entry);
+    spotlight_group.add(&locale_row);
     page.add(&bing_group);
     page.add(&spotlight_group);
     toolbar.set_content(Some(&page));
