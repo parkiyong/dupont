@@ -7,8 +7,8 @@
 
 - [x] **Phase 1: Core Engine Foundation** - Core domain logic with async operations and caching (completed 2026-04-14)
 - [x] **Phase 2: Desktop Environment Integration** - GNOME and COSMIC wallpaper setting APIs (completed 2026-04-14)
-- [ ] **Phase 3: UI Layer Implementation** - GTK widgets for user interaction
-- [ ] **Phase 4: Integration and Polish** - Application wiring and packaging
+- [x] **Phase 3: UI Layer Implementation** - GTK widgets for user interaction (completed 2026-04-19)
+- [x] **Phase 4: Integration and Polish** - Application wiring and packaging (completed 2026-04-19)
 
 ## Phase Details
 
@@ -60,7 +60,7 @@
 
 **Plan List:**
 - [x] 03-01-PLAN.md — Create app crate with main window, preview, metadata, source dropdown, refresh, and error toasts
-- [ ] 03-02-PLAN.md — Create settings window with Bing market and Spotlight locale configuration
+- [x] 03-02-PLAN.md — Create settings window with Bing market and Spotlight locale configuration
 
 ### Phase 4: Integration and Polish
 **Goal**: Application integrates all components with configuration loading and prepares for release
@@ -71,8 +71,12 @@
   2. Configuration persists source preferences (Bing market, Spotlight locale) across sessions
   3. Application includes desktop file for integration with GNOME/COSMIC application menus
   4. Application includes appropriate icon for desktop environment display
-**Plans**: TBD
+**Plans**: 2 plans
 **UI hint**: yes
+
+**Plan List:**
+- [x] 04-01-PLAN.md — Config persistence with save/load via serde + dirs
+- [x] 04-02-PLAN.md — Desktop entry file and app icons
 
 ## Progress
 
@@ -81,7 +85,8 @@
 | 1. Core Engine Foundation | 3/3 | Complete    | 2026-04-14 |
 | 2. Desktop Environment Integration | 2/2 | Complete    | 2026-04-14 |
 | 3. UI Layer Implementation | 2/2 | Complete    | 2026-04-19 |
-| 4. Integration and Polish | 0/0 | Not started | - |
+| 4. Integration and Polish | 2/2 | Complete | 2026-04-19 |
 
 ---
 *Roadmap created: 2026-04-13*
+*All phases complete: 2026-04-19*

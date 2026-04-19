@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Damask
+Comment=Set your desktop wallpaper from Bing and Spotlight
+Exec=damask-app
+Icon=com.damask.Wallpaper
+Categories=GNOME;GTK;Utility;DesktopSettings;
+Keywords=wallpaper;background;bing;spotlight;
+StartupNotify=true
+StartupWMClass=com.damask.Wallpaper

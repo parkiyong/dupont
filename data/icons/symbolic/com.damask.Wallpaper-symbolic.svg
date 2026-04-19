@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16" width="16" height="16">
+  <!-- Monitor outline -->
+  <rect x="1" y="1" width="14" height="10" rx="1.5" ry="1.5" fill="none" stroke="currentColor" stroke-width="1.2"/>
+  <!-- Mountain/landscape silhouette -->
+  <polyline points="2,9 5,5 7.5,7.5 10,4 14,8 14,10 2,10" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round"/>
+  <!-- Stand -->
+  <line x1="8" y1="11" x2="8" y2="12.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  <line x1="5" y1="13" x2="11" y2="13" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+</svg>

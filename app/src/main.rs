@@ -1,6 +1,7 @@
 use relm4::RelmApp;
 
 mod app;
+mod config;
 mod messages;
 mod widgets;
 

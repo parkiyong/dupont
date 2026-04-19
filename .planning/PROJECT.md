@@ -24,13 +24,14 @@ Users can automatically set their desktop wallpaper from online sources (Bing, S
 - ✓ GTK-rs UI displays wallpaper metadata (title, description, attribution) — Validated in Phase 3
 - ✓ GTK-rs UI displays error toasts for failures — Validated in Phase 3
 - ✓ GTK-rs UI provides settings window for source configuration — Validated in Phase 3
+- ✓ Application runs complete end-to-end workflow — Validated in Phase 4
+- ✓ Configuration persists source preferences across sessions — Validated in Phase 4
+- ✓ Application includes desktop file for app menu integration — Validated in Phase 4
+- ✓ Application includes appropriate icon — Validated in Phase 4
 
 ### Active
 
-- [ ] Application runs complete end-to-end workflow
-- [ ] Configuration persists source preferences across sessions
-- [ ] Application includes desktop file for app menu integration
-- [ ] Application includes appropriate icon
+(None — all v1 requirements validated)
 
 ### Out of Scope
 
@@ -82,4 +83,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-19 after Phase 3 (UI Layer Implementation)*
+*Last updated: 2026-04-19 after Phase 4 (Integration and Polish) — v1.0 milestone complete*

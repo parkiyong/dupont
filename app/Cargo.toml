@@ -10,3 +10,7 @@ adw = { version = "0.9", package = "libadwaita" }
 domain = { path = "../domain", package = "damask-domain" }
 gio = { workspace = true }
 tokio = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+dirs = { workspace = true }
+anyhow = { workspace = true }

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <!-- Monitor body -->
+  <rect x="12" y="8" width="104" height="80" rx="8" ry="8" fill="#3584e4" stroke="#1a5fb4" stroke-width="3"/>
+  <!-- Screen area -->
+  <rect x="18" y="14" width="92" height="68" rx="4" ry="4" fill="#1c71d8"/>
+  <!-- Landscape/mountain silhouette -->
+  <polygon points="18,68 42,42 58,56 72,36 92,54 110,30 110,82 18,82" fill="#26a269" opacity="0.7"/>
+  <polygon points="18,82 38,58 54,70 70,48 88,62 110,40 110,82" fill="#2ec27e" opacity="0.5"/>
+  <!-- Sun -->
+  <circle cx="90" cy="30" r="8" fill="#f5c211" opacity="0.9"/>
+  <!-- Monitor stand -->
+  <rect x="48" y="88" width="32" height="6" rx="2" ry="2" fill="#1a5fb4"/>
+  <rect x="38" y="94" width="52" height="5" rx="3" ry="3" fill="#1a5fb4"/>
+  <!-- Base -->
+  <rect x="30" y="99" width="68" height="6" rx="3" ry="3" fill="#1a5fb4"/>
+</svg>

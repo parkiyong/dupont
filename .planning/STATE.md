@@ -4,21 +4,21 @@ milestone: v1.0
 milestone_name: milestone
 current_phase: 04
 current_plan: 0
-status: ready-to-plan
-last_updated: "2026-04-19T12:00:00.000Z"
+status: milestone-complete
+last_updated: "2026-04-19T15:00:00.000Z"
 progress:
   total_phases: 4
-  completed_phases: 3
-  total_plans: 7
-  completed_plans: 7
+  completed_phases: 4
+  total_plans: 9
+  completed_plans: 9
   percent: 100
 ---
 
 # State: Damask-rs
 
 **Initialized:** 2026-04-13
-**Current Phase:** 04 (integration-and-polish) — READY TO PLAN
-**Current Status:** M2 complete, ready for Phase 4
+**Current Phase:** 04 (integration-and-polish) — COMPLETE
+**Current Status:** v1.0 milestone complete — all 4 phases finished
 
 ## Project Reference
 
@@ -39,9 +39,9 @@ Linux desktop application (wallpaper manager) with GTK UI
 
 ## Current Position
 
-Phase: 04 (integration-and-polish) — READY TO PLAN
-Plan: TBD
-**Status:** M2 complete. All features working with bug fixes applied.
+Phase: 04 of 4 (integration-and-polish) — COMPLETE
+Plan: All plans complete
+Status: v1.0 milestone complete
 
 **Progress Bar:**
 
@@ -49,8 +49,16 @@ Plan: TBD
 Phase 1: [██████████] 100%
 Phase 2: [██████████] 100%
 Phase 3: [██████████] 100%
-Phase 4: [░░░░░░░░░░] 0%
-Overall: [███████░░░] 75%
+Phase 4: [██████████] 100%
+Overall: [██████████] 100%
+```
+
+## Loop Position
+
+Current loop state:
+```
+PLAN ──▶ APPLY ──▶ UNIFY
+  ✓        ✓        ✓     [Phase 4 complete — milestone done]
 ```
 
 ## Milestone History
@@ -70,10 +78,20 @@ Fixes applied:
 - Shared state (Rc<RefCell>) for settings persistence across refresh
 - Bing cache ID includes market to avoid stale images across markets
 
+### M3 — Integration and Polish (2026-04-19)
+**Scope:** Phase 4 — Config persistence and desktop integration
+
+Changes:
+- Config persistence via ~/.config/damask/config.json (bing_market, spotlight_locale, active_source)
+- Desktop entry file (data/com.damask.Wallpaper.desktop)
+- Scalable and symbolic app icons (SVG)
+- All 16 v1 requirements validated
+
 ## Session Continuity
 
-**Last Action:** M2 bug fixes complete — all features working
-**Next Recommended Action:** Plan Phase 4 (Integration and Polish) or ship M2
+**Last Action:** Phase 4 complete, v1.0 milestone finished
+**Next Recommended Action:** Commit Phase 4 changes, or start next milestone
+**Resume file:** .planning/ROADMAP.md
 
 ---
-*Last updated: 2026-04-19 after M2 bug fix milestone*
+*Last updated: 2026-04-19 after Phase 4 transition — v1.0 milestone complete*

@@ -73,17 +73,25 @@ impl AsyncComponent for App {
             }
         };
 
+        // Load persisted config (falls back to defaults)
+        let cfg = crate::config::Config::load();
+
         let source_ids = vec!["bing".to_string(), "spotlight".to_string()];
+        let active_source_id = if source_ids.contains(&cfg.active_source) {
+            cfg.active_source.clone()
+        } else {
+            "bing".to_string()
+        };
 
         let model = App {
             wallpaper: None,
             cache_path: None,
             cache,
-            active_source_id: "bing".to_string(),
+            active_source_id,
             source_ids,
             loading: false,
-            bing_market: Rc::new(RefCell::new("en-US".to_string())),
-            spotlight_locale: Rc::new(RefCell::new("en-US".to_string())),
+            bing_market: Rc::new(RefCell::new(cfg.bing_market)),
+            spotlight_locale: Rc::new(RefCell::new(cfg.spotlight_locale)),
         };
 
         // Build widget tree manually
@@ -232,6 +240,14 @@ impl AsyncComponent for App {
             let _ = sender_refresh.send(AppMsg::Refresh);
         });
 
+        // Set dropdown to match loaded active source
+        let initial_idx = model
+            .source_ids
+            .iter()
+            .position(|id| *id == model.active_source_id)
+            .unwrap_or(0) as u32;
+        source_dropdown.set_selected(initial_idx);
+
         // Auto-fetch initial wallpaper
         sender.input(AppMsg::Refresh);
 
@@ -306,13 +322,29 @@ impl AsyncComponent for App {
             }
 
             AppMsg::SourceChanged(id) => {
-                self.active_source_id = id;
+                self.active_source_id = id.clone();
+                let cfg = crate::config::Config {
+                    bing_market: self.bing_market.borrow().clone(),
+                    spotlight_locale: self.spotlight_locale.borrow().clone(),
+                    active_source: id,
+                };
+                if let Err(e) = cfg.save() {
+                    eprintln!("Failed to save config: {}", e);
+                }
                 sender.input(AppMsg::Refresh);
             }
 
             AppMsg::SettingsChanged { bing_market, spotlight_locale } => {
-                *self.bing_market.borrow_mut() = bing_market;
-                *self.spotlight_locale.borrow_mut() = spotlight_locale;
+                *self.bing_market.borrow_mut() = bing_market.clone();
+                *self.spotlight_locale.borrow_mut() = spotlight_locale.clone();
+                let cfg = crate::config::Config {
+                    bing_market,
+                    spotlight_locale,
+                    active_source: self.active_source_id.clone(),
+                };
+                if let Err(e) = cfg.save() {
+                    eprintln!("Failed to save config: {}", e);
+                }
             }
         }
     }
