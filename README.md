@@ -3,6 +3,7 @@
 A native Linux desktop application for setting wallpapers from online sources. Built with Rust and GTK/libadwaita.
 
 ![GTK4](https://img.shields.io/badge/GTK-4-blue)
+![GNOME](https://img.shields.io/badge/GNOME-49-4a86cf)
 ![Rust](https://img.shields.io/badge/Rust-stable-orange)
 ![License](https://img.shields.io/badge/License-GPL_3.0-green)
 
@@ -38,7 +39,10 @@ cargo build --release
 
 ### Flatpak (manual build)
 
+Requires flatpak-builder and the GNOME 49 SDK.
+
 ```bash
+flatpak install flathub org.gnome.Platform//49 org.gnome.Sdk//49 org.freedesktop.Sdk.Extension.rust-stable//25.08
 cd flatpak
 flatpak-builder --user --install --force-clean repo io.github.parkiyong.dupont.json
 flatpak run io.github.parkiyong.dupont

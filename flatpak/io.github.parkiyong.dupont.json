@@ -1,9 +1,21 @@
 {
     "app-id": "io.github.parkiyong.dupont",
     "runtime": "org.gnome.Platform",
-    "runtime-version": "47",
+    "runtime-version": "49",
     "sdk": "org.gnome.Sdk",
+    "sdk-extensions": [
+        "org.freedesktop.Sdk.Extension.rust-stable"
+    ],
     "command": "dupont-app",
+    "build-options": {
+        "append-path": "/usr/lib/sdk/rust-stable/bin",
+        "build-args": [
+            "--share=network"
+        ],
+        "env": {
+            "CARGO_HOME": "/run/build/dupont/cargo"
+        }
+    },
     "finish-args": [
         "--share=network",
         "--filesystem=~/.config/dupont:create",
@@ -18,26 +30,10 @@
     ],
     "modules": [
         {
-            "name": "rust",
-            "buildsystem": "simple",
-            "cleanup": [
-                "*"
-            ],
-            "build-commands": [
-                "cargo --offline fetch --locked --manifest-path Cargo.toml",
-                "cargo --offline build --release --frozen --manifest-path Cargo.toml -p dupont-domain -p dupont-app"
-            ],
-            "sources": [
-                {
-                    "type": "dir",
-                    "path": "."
-                }
-            ]
-        },
-        {
             "name": "dupont",
             "buildsystem": "simple",
             "build-commands": [
+                "cargo --offline build --release --frozen --manifest-path Cargo.toml -p dupont-domain -p dupont-app",
                 "install -Dm755 target/release/dupont-app /app/bin/dupont-app",
                 "install -Dm644 data/io.github.parkiyong.dupont.desktop /app/share/applications/io.github.parkiyong.dupont.desktop",
                 "install -Dm644 data/icons/scalable/io.github.parkiyong.dupont.svg /app/share/icons/hicolor/scalable/apps/io.github.parkiyong.dupont.svg",
@@ -45,9 +41,17 @@
             ],
             "sources": [
                 {
-                    "type": "dir",
-                    "path": "."
-                }
+                    "type": "git",
+                    "url": "https://github.com/parkiyong/dupont.git",
+                    "tag": "v1.1"
+                },
+                {
+                    "type": "inline",
+                    "contents": "[source.crates-io]\nreplace-with = \"vendored-sources\"\n\n[source.vendored-sources]\ndirectory = \"/run/build/dupont/cargo/vendor\"\n",
+                    "dest": "cargo/config.toml",
+                    "dest-filename": "config.toml"
+                },
+                "cargo-sources.json"
             ]
         }
     ]
