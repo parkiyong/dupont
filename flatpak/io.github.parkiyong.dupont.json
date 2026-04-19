@@ -24,7 +24,9 @@
         "--device=dri",
         "--filesystem=~/.config/dupont:create",
         "--filesystem=~/.cache/dupont:create",
-        "--talk-name=org.freedesktop.portal.Desktop"
+        "--filesystem=xdg-config/dconf:ro",
+        "--talk-name=org.freedesktop.portal.Desktop",
+        "--talk-name=ca.desrt.dconf"
     ],
     "cleanup": [
         "/include",
