@@ -5,7 +5,7 @@ pkgrel=1
 pkgdesc="Set your desktop wallpaper from Bing and Spotlight"
 arch=('x86_64' 'aarch64')
 url="https://github.com/parkiyong/dupont"
-license=('Apache-2.0')
+license=('GPL-3.0-or-later')
 depends=('gtk4' 'libadwaita' 'openssl' 'glib2' 'libsoup3' 'hicolor-icon-theme')
 makedepends=('cargo' 'git')
 source=("$pkgname::git+$url.git#tag=v$pkgver")

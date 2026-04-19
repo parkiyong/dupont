@@ -4,7 +4,7 @@ A native Linux desktop application for setting wallpapers from online sources. B
 
 ![GTK4](https://img.shields.io/badge/GTK-4-blue)
 ![Rust](https://img.shields.io/badge/Rust-stable-orange)
-![License](https://img.shields.io/badge/License-Apache_2.0-green)
+![License](https://img.shields.io/badge/License-GPL_3.0-green)
 
 ## Features
 
@@ -60,6 +60,10 @@ flatpak run io.github.parkiyong.dupont
 | HTTP Client | reqwest |
 | Architecture | Clean separation — `dupont-domain` (core engine) + `dupont-app` (GTK UI) |
 
+## Credits
+
+Inspired by [Damask](https://gitlab.gnome.org/subpop/damask) by Link Dupont — hence the name.
+
 ## License
 
-[Apache License 2.0](LICENSE)
+[GPLv3](LICENSE)
