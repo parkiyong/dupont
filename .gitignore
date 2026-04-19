@@ -13,6 +13,12 @@ target
 # Contains mutation testing data
 **/mutants.out*/
 
+# AUR / makepkg
+*.pkg.tar.zst
+pkg/
+src/
+dupont/
+
 # Flatpak
 .flatpak-builder/
 flatpak/build-dir/

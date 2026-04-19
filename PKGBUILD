@@ -1,11 +1,11 @@
 # Maintainer: Park Kiyong <parkiyong@users.noreply.github.com>
 pkgname=dupont
-pkgver=0.1.0
+pkgver=1.1
 pkgrel=1
 pkgdesc="Set your desktop wallpaper from Bing and Spotlight"
 arch=('x86_64' 'aarch64')
 url="https://github.com/parkiyong/dupont"
-license=('GPL-3.0-or-later')
+license=('Apache-2.0')
 depends=('gtk4' 'libadwaita' 'openssl' 'glib2' 'libsoup3' 'hicolor-icon-theme')
 makedepends=('cargo' 'git')
 source=("$pkgname::git+$url.git#tag=v$pkgver")
