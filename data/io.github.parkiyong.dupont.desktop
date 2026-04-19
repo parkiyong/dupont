@@ -2,7 +2,7 @@
 Type=Application
 Name=Dupont
 Comment=Set your desktop wallpaper from Bing and Spotlight
-Exec=dupont-app
+Exec=dupont
 Icon=io.github.parkiyong.dupont
 Categories=GNOME;GTK;Utility;DesktopSettings;
 Keywords=wallpaper;background;bing;spotlight;
