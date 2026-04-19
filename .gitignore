@@ -15,9 +15,9 @@ target
 
 # AUR / makepkg
 *.pkg.tar.zst
-pkg/
-src/
-dupont/
+/pkg/
+/src/
+/dupont/
 
 # Flatpak
 .flatpak-builder/
