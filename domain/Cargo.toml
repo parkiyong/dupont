@@ -9,10 +9,8 @@ serde_json = { workspace = true }
 tokio = { workspace = true }
 reqwest = { workspace = true }
 thiserror = { workspace = true }
-anyhow = { workspace = true }
 image = { workspace = true }
 dirs = { workspace = true }
 gio = { workspace = true }
 async-trait = "0.1"
 ashpd = { workspace = true }
-url = { workspace = true }

@@ -420,7 +420,6 @@ dependencies = [
 name = "dupont-domain"
 version = "1.2.0"
 dependencies = [
- "anyhow",
  "ashpd",
  "async-trait",
  "dirs",
@@ -431,7 +430,6 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.18",
  "tokio",
- "url",
 ]
 
 [[package]]
