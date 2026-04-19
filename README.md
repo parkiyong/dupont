@@ -11,7 +11,7 @@ A native Linux desktop application for setting wallpapers from online sources. B
 - Fetch wallpapers from **Bing Wallpaper of the Day** and **Microsoft Spotlight**
 - Wallpaper preview with metadata (title, description, attribution)
 - Configurable Bing market and Spotlight locale
-- Supports **GNOME** and **COSMIC** desktop environments
+- Currently only supports **GNOME** desktop environments
 - Persistent settings across sessions
 - Error toasts for network and runtime failures
 
