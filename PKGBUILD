@@ -1,6 +1,6 @@
 # Maintainer: Park Kiyong <parkiyong@users.noreply.github.com>
 pkgname=dupont
-pkgver=1.1
+pkgver=1.2
 pkgrel=1
 pkgdesc="Set your desktop wallpaper from Bing and Spotlight"
 arch=('x86_64' 'aarch64')
