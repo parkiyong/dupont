@@ -16,7 +16,6 @@ target
 # AUR / makepkg
 *.pkg.tar.zst
 /pkg/
-/src/
 /dupont/
 
 # Flatpak
