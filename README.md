@@ -18,16 +18,6 @@ A native Linux desktop application for setting wallpapers from online sources. B
 
 ## Install
 
-### Arch Linux (AUR)
-
-```bash
-git clone https://aur.archlinux.org/dupont.git
-cd dupont
-makepkg -si
-```
-
-Then run: `dupont`
-
 ### Build from source
 
 Requires Rust stable, GTK4, and libadwaita.
@@ -37,24 +27,6 @@ git clone https://github.com/parkiyong/dupont.git
 cd dupont
 cargo build --release
 ./target/release/dupont
-```
-
-### Flatpak
-
-Download the latest release from [GitHub Releases](https://github.com/parkiyong/dupont/releases) and install:
-
-```bash
-flatpak install io.github.parkiyong.dupont-1.2.0.flatpak
-```
-
-Or build from source (requires flatpak-builder and GNOME 49 SDK):
-
-```bash
-flatpak install flathub org.gnome.Platform//49 org.gnome.Sdk//49 org.freedesktop.Sdk.Extension.rust-stable//25.08
-cd flatpak
-flatpak-builder --force-clean --repo=repo --default-branch=stable build-dir io.github.parkiyong.dupont.json
-flatpak --user remote-add --no-gpg-verify dupont repo
-flatpak --user install dupont io.github.parkiyong.dupont
 ```
 
 ## Usage

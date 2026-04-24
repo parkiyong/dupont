@@ -16,11 +16,6 @@ cargo clippy                             # Lint
 cargo fmt --check                        # Format check
 ```
 
-Flatpak build (requires GNOME 49 SDK):
-```bash
-cd flatpak && flatpak-builder --user --install --force-clean repo io.github.parkiyong.dupont.json
-```
-
 ## Architecture
 
 Two-crate Cargo workspace with clean domain/UI separation:
