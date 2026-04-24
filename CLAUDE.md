@@ -10,27 +10,26 @@ Dupont is a native Linux desktop wallpaper app (Bing WOTD + Microsoft Spotlight)
 
 ```bash
 cargo build --release                    # Full release build
-cargo run --release -p dupont-app        # Run the app
-cargo test                               # Run unit tests (in domain/src/error.rs, domain/src/desktop/mod.rs)
+cargo run --release                      # Run the app
+cargo test                               # Run unit tests
 cargo clippy                             # Lint
 cargo fmt --check                        # Format check
 ```
 
 ## Architecture
 
-Two-crate Cargo workspace with clean domain/UI separation:
+Single Cargo crate with clean domain/UI separation via modules:
 
-- **`domain/` (dupont-domain)** — business logic, no UI dependency
+- **`src/domain/`** — business logic, UI-independent
   - `source.rs` — `Source` trait (async `fetch()` → `Wallpaper`)
   - `sources/bing.rs`, `sources/spotlight.rs` — source implementations
   - `cache.rs` — LRU image cache (~500MB/50 images/30 days)
   - `desktop/mod.rs` — `DesktopEnvironment` trait + `create_desktop_backend()` factory (reads `XDG_CURRENT_DESKTOP`)
   - `desktop/portal.rs` — GNOME wallpaper via Portal API (ashpd/DBus)
   - `error.rs` — `SourceError`, `CacheError`, `DEError` (thiserror)
-
   - `wallpaper.rs` — `Wallpaper` struct (id, url, title, description, attribution, source)
 
-- **`app/` (dupont-app)** — GTK4/relm4 UI
+- **`src/app/`** — GTK4/relm4 UI
   - `app.rs` — single async root component; handles all state, message dispatch, and widget building
   - `config.rs` — user settings persistence (`~/.config/dupont/config.json`)
   - `messages.rs` — `AppMsg` enum (Refresh, SourceChanged, SettingsChanged)

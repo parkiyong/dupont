@@ -245,30 +245,18 @@ dependencies = [
 ]
 
 [[package]]
-name = "dupont-app"
+name = "dupont"
 version = "1.2.0"
 dependencies = [
  "anyhow",
- "cfg-if",
- "dirs",
- "dupont-domain",
- "gio 0.20.12",
- "gtk4",
- "relm4",
- "serde",
- "serde_json",
- "tokio",
-]
-
-[[package]]
-name = "dupont-domain"
-version = "1.2.0"
-dependencies = [
  "ashpd",
  "async-trait",
+ "cfg-if",
  "dirs",
  "gio 0.20.12",
+ "gtk4",
  "image",
+ "relm4",
  "reqwest",
  "serde",
  "serde_json",
