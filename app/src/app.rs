@@ -495,7 +495,7 @@ fn create_settings_window(
     vbox.append(&locale_dropdown);
 
     // Show Preview Toggle
-    let preview_check = gtk::CheckButton::with_label("Show portal preview dialog");
+    let preview_check = gtk::CheckButton::with_label("Show preview before changing wallpaper");
     preview_check.set_active(show_preview);
     vbox.append(&preview_check);
 
