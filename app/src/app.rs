@@ -23,7 +23,6 @@ pub enum CmdOut {
 
 /// Widgets struct -- stores references to all named widgets.
 pub struct Widgets {
-    pub overlay: gtk::Overlay,
     pub preview: gtk::Picture,
     pub title_label: gtk::Label,
     pub description_label: gtk::Label,
@@ -97,8 +96,6 @@ impl AsyncComponent for App {
         };
 
         // Build widget tree manually
-        let overlay = gtk::Overlay::new();
-
         let vbox = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
             .spacing(18)
@@ -192,7 +189,6 @@ impl AsyncComponent for App {
 
         clamp.append(&inner_box);
         vbox.append(&clamp);
-        overlay.set_child(Some(&vbox));
 
         // Add header bar with settings button
         let header = gtk::HeaderBar::new();
@@ -222,7 +218,7 @@ impl AsyncComponent for App {
         });
 
         root.set_titlebar(Some(&header));
-        root.set_child(Some(&overlay));
+        root.set_child(Some(&vbox));
 
         // Wire source dropdown signal
         let sender_clone = sender.clone();
@@ -249,7 +245,6 @@ impl AsyncComponent for App {
         source_dropdown.set_selected(initial_idx);
 
         let widgets = Widgets {
-            overlay,
             preview,
             title_label,
             description_label,
