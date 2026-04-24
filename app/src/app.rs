@@ -373,9 +373,8 @@ impl AsyncComponent for App {
                 widgets.source_dropdown.set_sensitive(true);
                 widgets.refresh_button.set_sensitive(true);
                 set_button_child_label(&widgets.refresh_button, "Refresh Wallpaper");
-                match domain::create_desktop_backend() {
-                    Ok(mut backend) => {
-                        backend.set_show_preview(*self.show_preview.borrow());
+                match domain::create_desktop_backend(*self.show_preview.borrow()) {
+                    Ok(backend) => {
                         if let Err(e) = backend.set_wallpaper(&cache_path).await {
                             eprintln!("Failed to set wallpaper: {}", e);
                         }

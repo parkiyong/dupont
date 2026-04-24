@@ -21,6 +21,13 @@ impl Default for PortalDE {
     }
 }
 
+impl PortalDE {
+    /// Create a new PortalDE with the specified preview setting.
+    pub fn with_preview(show_preview: bool) -> Self {
+        Self { show_preview }
+    }
+}
+
 #[async_trait]
 impl DesktopEnvironment for PortalDE {
     async fn set_wallpaper(&self, image_path: &Path) -> Result<(), DEError> {

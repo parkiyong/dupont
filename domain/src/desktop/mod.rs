@@ -55,7 +55,7 @@ pub fn detect_desktop_environment() -> Option<String> {
 }
 
 /// Create the appropriate desktop backend based on the detected environment.
-pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> {
+pub fn create_desktop_backend(show_preview: bool) -> Result<Box<dyn DesktopEnvironment>, DEError> {
     #[cfg(target_os = "linux")]
     {
         let de = detect_desktop_environment().ok_or(DEError::DetectionFailed)?;
@@ -67,7 +67,7 @@ pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> 
             || de.contains("unity")
             || de.contains("pop")
         {
-            let backend = PortalDE::default();
+            let backend = PortalDE::with_preview(show_preview);
             if backend.is_available() {
                 return Ok(Box::new(backend));
             } else {
@@ -143,14 +143,14 @@ mod tests {
         unsafe {
             std::env::set_var("XDG_CURRENT_DESKTOP", "gnome");
         }
-        let result = create_desktop_backend();
+        let result = create_desktop_backend(true);
         assert!(result.is_ok());
 
         // 2. Unknown DE "i3" should produce UnsupportedDE
         unsafe {
             std::env::set_var("XDG_CURRENT_DESKTOP", "i3");
         }
-        let result = create_desktop_backend();
+        let result = create_desktop_backend(false);
         let err = match result {
             Err(e) => e,
             Ok(_) => panic!("Expected error for unknown DE 'i3', got Ok(backend)"),
