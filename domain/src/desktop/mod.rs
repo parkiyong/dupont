@@ -22,6 +22,9 @@ pub trait DesktopEnvironment: Send + Sync {
     /// Get the current desktop wallpaper path (if available)
     fn get_current_wallpaper(&self) -> Result<Option<PathBuf>, DEError>;
 
+    /// Set whether to show a preview dialog (if supported by the DE)
+    fn set_show_preview(&mut self, show: bool);
+
     /// Human-readable name for this desktop environment
     fn name(&self) -> &'static str;
 
@@ -64,7 +67,7 @@ pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> 
             || de.contains("unity")
             || de.contains("pop")
         {
-            let backend = PortalDE;
+            let backend = PortalDE::default();
             if backend.is_available() {
                 return Ok(Box::new(backend));
             } else {

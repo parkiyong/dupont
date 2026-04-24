@@ -11,7 +11,15 @@ use crate::error::DEError;
 ///
 /// Uses the freedesktop.org Wallpaper Portal (org.freedesktop.portal.Wallpaper)
 /// via ashpd. Works in both native and Flatpak sandboxed environments.
-pub struct PortalDE;
+pub struct PortalDE {
+    show_preview: bool,
+}
+
+impl Default for PortalDE {
+    fn default() -> Self {
+        Self { show_preview: true }
+    }
+}
 
 #[async_trait]
 impl DesktopEnvironment for PortalDE {
@@ -30,7 +38,7 @@ impl DesktopEnvironment for PortalDE {
 
         WallpaperRequest::default()
             .set_on(SetOn::Background)
-            .show_preview(false)
+            .show_preview(self.show_preview)
             .build_file(&file.as_fd())
             .await
             .map_err(|e| {
@@ -45,6 +53,10 @@ impl DesktopEnvironment for PortalDE {
         Ok(None)
     }
 
+    fn set_show_preview(&mut self, show: bool) {
+        self.show_preview = show;
+    }
+
     fn name(&self) -> &'static str {
         "Wallpaper Portal"
     }
@@ -53,3 +65,4 @@ impl DesktopEnvironment for PortalDE {
         cfg!(target_os = "linux")
     }
 }
+

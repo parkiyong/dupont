@@ -5,5 +5,6 @@ pub enum AppMsg {
     SettingsChanged {
         bing_market: String,
         spotlight_locale: String,
+        show_preview: bool,
     },
 }

@@ -55,6 +55,10 @@ impl DesktopEnvironment for WindowsDE {
         Ok(None)
     }
 
+    fn set_show_preview(&mut self, _show: bool) {
+        // Not applicable on Windows
+    }
+
     fn name(&self) -> &'static str {
         "Windows"
     }

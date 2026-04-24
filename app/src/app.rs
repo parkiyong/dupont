@@ -41,6 +41,7 @@ pub struct App {
     loading: bool,
     bing_market: Rc<RefCell<String>>,
     spotlight_locale: Rc<RefCell<String>>,
+    show_preview: Rc<RefCell<bool>>,
 }
 
 impl AsyncComponent for App {
@@ -92,6 +93,7 @@ impl AsyncComponent for App {
             loading: false,
             bing_market: Rc::new(RefCell::new(cfg.bing_market)),
             spotlight_locale: Rc::new(RefCell::new(cfg.spotlight_locale)),
+            show_preview: Rc::new(RefCell::new(cfg.show_preview)),
         };
 
         // Build widget tree manually
@@ -207,10 +209,12 @@ impl AsyncComponent for App {
         let settings_sender = sender.clone();
         let settings_market = model.bing_market.clone();
         let settings_locale = model.spotlight_locale.clone();
+        let settings_preview = model.show_preview.clone();
         settings_btn.connect_clicked(move |_| {
             let win = create_settings_window(
                 settings_market.borrow().clone(),
                 settings_locale.borrow().clone(),
+                *settings_preview.borrow(),
                 Some(&settings_root),
                 settings_sender.clone(),
             );
@@ -320,6 +324,7 @@ impl AsyncComponent for App {
                     bing_market: self.bing_market.borrow().clone(),
                     spotlight_locale: self.spotlight_locale.borrow().clone(),
                     active_source: id,
+                    show_preview: *self.show_preview.borrow(),
                 };
                 if let Err(e) = cfg.save() {
                     eprintln!("Failed to save config: {}", e);
@@ -327,13 +332,15 @@ impl AsyncComponent for App {
                 sender.input(AppMsg::Refresh);
             }
 
-            AppMsg::SettingsChanged { bing_market, spotlight_locale } => {
+            AppMsg::SettingsChanged { bing_market, spotlight_locale, show_preview } => {
                 *self.bing_market.borrow_mut() = bing_market.clone();
                 *self.spotlight_locale.borrow_mut() = spotlight_locale.clone();
+                *self.show_preview.borrow_mut() = show_preview;
                 let cfg = crate::config::Config {
                     bing_market,
                     spotlight_locale,
                     active_source: self.active_source_id.clone(),
+                    show_preview,
                 };
                 if let Err(e) = cfg.save() {
                     eprintln!("Failed to save config: {}", e);
@@ -372,7 +379,8 @@ impl AsyncComponent for App {
                 widgets.refresh_button.set_sensitive(true);
                 set_button_child_label(&widgets.refresh_button, "Refresh Wallpaper");
                 match domain::create_desktop_backend() {
-                    Ok(backend) => {
+                    Ok(mut backend) => {
+                        backend.set_show_preview(*self.show_preview.borrow());
                         if let Err(e) = backend.set_wallpaper(&cache_path).await {
                             eprintln!("Failed to set wallpaper: {}", e);
                         }
@@ -416,6 +424,7 @@ fn set_button_child_label(button: &gtk::Button, text: &str) {
 fn create_settings_window(
     bing_market: String,
     spotlight_locale: String,
+    show_preview: bool,
     transient_for: Option<&gtk::ApplicationWindow>,
     sender: relm4::AsyncComponentSender<App>,
 ) -> gtk::Window {
@@ -427,7 +436,7 @@ fn create_settings_window(
 
     window.set_title(Some("Dupont Preferences"));
     window.set_modal(true);
-    window.set_default_size(400, 300);
+    window.set_default_size(400, 350);
 
     let vbox = gtk::Box::new(gtk::Orientation::Vertical, 12);
     vbox.set_margin_top(12);
@@ -485,26 +494,48 @@ fn create_settings_window(
     locale_dropdown.set_selected(locale_initial_index);
     vbox.append(&locale_dropdown);
 
+    // Show Preview Toggle
+    let preview_check = gtk::CheckButton::with_label("Show portal preview dialog");
+    preview_check.set_active(show_preview);
+    vbox.append(&preview_check);
+
     // Wire signals
     let sender1 = sender.clone();
     let locale_dropdown_clone = locale_dropdown.clone();
+    let preview_check_clone1 = preview_check.clone();
     market_dropdown.connect_selected_notify(move |dropdown| {
         let market = markets[dropdown.selected() as usize].to_string();
         let locale = markets[locale_dropdown_clone.selected() as usize].to_string();
         sender1.input(AppMsg::SettingsChanged {
             bing_market: market,
             spotlight_locale: locale,
+            show_preview: preview_check_clone1.is_active(),
         });
     });
 
     let sender2 = sender.clone();
     let market_dropdown_clone = market_dropdown.clone();
+    let preview_check_clone2 = preview_check.clone();
     locale_dropdown.connect_selected_notify(move |dropdown| {
         let locale = markets[dropdown.selected() as usize].to_string();
         let market = markets[market_dropdown_clone.selected() as usize].to_string();
         sender2.input(AppMsg::SettingsChanged {
             bing_market: market,
             spotlight_locale: locale,
+            show_preview: preview_check_clone2.is_active(),
+        });
+    });
+
+    let sender3 = sender.clone();
+    let market_dropdown_clone3 = market_dropdown.clone();
+    let locale_dropdown_clone3 = locale_dropdown.clone();
+    preview_check.connect_toggled(move |check| {
+        let market = markets[market_dropdown_clone3.selected() as usize].to_string();
+        let locale = markets[locale_dropdown_clone3.selected() as usize].to_string();
+        sender3.input(AppMsg::SettingsChanged {
+            bing_market: market,
+            spotlight_locale: locale,
+            show_preview: check.is_active(),
         });
     });
 
