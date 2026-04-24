@@ -31,12 +31,15 @@ pub struct Widgets {
     pub refresh_button: gtk::Button,
 }
 
+pub struct WidgetsPlus {
+    pub widgets: Widgets,
+    pub source_ids: Vec<String>,
+}
+
 pub struct App {
     wallpaper: Option<crate::domain::Wallpaper>,
     cache_path: Option<PathBuf>,
     cache: Arc<tokio::sync::Mutex<crate::domain::Cache>>,
-    active_source_id: String,
-    source_ids: Vec<String>,
     loading: bool,
     bing_market: Rc<RefCell<String>>,
     spotlight_locale: Rc<RefCell<String>>,
@@ -49,7 +52,7 @@ impl AsyncComponent for App {
     type Output = ();
     type CommandOutput = CmdOut;
     type Root = gtk::ApplicationWindow;
-    type Widgets = Widgets;
+    type Widgets = WidgetsPlus;
 
     fn init_root() -> Self::Root {
         gtk::ApplicationWindow::builder()
@@ -76,15 +79,10 @@ impl AsyncComponent for App {
         // Load persisted config (falls back to defaults)
         let cfg = crate::app::config::Config::load();
 
-        let source_ids = vec!["bing".to_string(), "spotlight".to_string()];
-        let active_source_id = "bing".to_string();
-
         let model = App {
             wallpaper: None,
             cache_path: None,
             cache,
-            active_source_id,
-            source_ids,
             loading: false,
             bing_market: Rc::new(RefCell::new(cfg.bing_market)),
             spotlight_locale: Rc::new(RefCell::new(cfg.spotlight_locale)),
@@ -216,29 +214,16 @@ impl AsyncComponent for App {
         root.set_titlebar(Some(&header));
         root.set_child(Some(&vbox));
 
-        // Wire source dropdown signal
-        let sender_clone = sender.clone();
-        let model_source_ids = model.source_ids.clone();
-        source_dropdown.connect_selected_notify(move |dropdown| {
-            let idx = dropdown.selected() as usize;
-            if let Some(id) = model_source_ids.get(idx) {
-                sender_clone.input(AppMsg::SourceChanged(id.clone()));
-            }
-        });
-
         // Wire refresh button signal
         let sender_refresh = sender.input_sender().clone();
         refresh_button.connect_clicked(move |_| {
             let _ = sender_refresh.send(AppMsg::Refresh);
         });
 
-        // Set dropdown to match loaded active source
-        let initial_idx = model
-            .source_ids
-            .iter()
-            .position(|id| *id == model.active_source_id)
-            .unwrap_or(0) as u32;
-        source_dropdown.set_selected(initial_idx);
+        // Set dropdown to default (bing, index 0)
+        source_dropdown.set_selected(0);
+
+        let source_ids = vec!["bing".to_string(), "spotlight".to_string()];
 
         let widgets = Widgets {
             preview,
@@ -249,12 +234,17 @@ impl AsyncComponent for App {
             refresh_button,
         };
 
-        AsyncComponentParts { model, widgets }
+        let widgets_plus = WidgetsPlus {
+            widgets,
+            source_ids,
+        };
+
+        AsyncComponentParts { model, widgets: widgets_plus }
     }
 
     async fn update_with_view(
         &mut self,
-        widgets: &mut Self::Widgets,
+        widgets: &mut WidgetsPlus,
         message: Self::Input,
         sender: AsyncComponentSender<Self>,
         _root: &Self::Root,
@@ -267,12 +257,15 @@ impl AsyncComponent for App {
                 self.loading = true;
 
                 // Update UI to loading state
-                widgets.source_dropdown.set_sensitive(false);
-                widgets.refresh_button.set_sensitive(false);
-                set_button_child_spinner(&widgets.refresh_button);
+                widgets.widgets.source_dropdown.set_sensitive(false);
+                widgets.widgets.refresh_button.set_sensitive(false);
+                set_button_child_spinner(&widgets.widgets.refresh_button);
+
+                // Get source from dropdown selection
+                let idx = widgets.widgets.source_dropdown.selected() as usize;
+                let source_id = widgets.source_ids.get(idx).cloned().unwrap_or_else(|| "bing".to_string());
 
                 // Clone what we need for the async command
-                let source_id = self.active_source_id.clone();
                 let cache = self.cache.clone();
                 let bing_market = self.bing_market.borrow().clone();
                 let spotlight_locale = self.spotlight_locale.borrow().clone();
@@ -309,11 +302,6 @@ impl AsyncComponent for App {
                 });
             }
 
-            AppMsg::SourceChanged(id) => {
-                self.active_source_id = id.clone();
-                sender.input(AppMsg::Refresh);
-            }
-
             AppMsg::SettingsChanged { bing_market, spotlight_locale, show_preview } => {
                 *self.bing_market.borrow_mut() = bing_market.clone();
                 *self.spotlight_locale.borrow_mut() = spotlight_locale.clone();
@@ -342,23 +330,18 @@ impl AsyncComponent for App {
                 // Load image into preview
                 let file = gtk::gio::File::for_path(&cache_path);
                 if let Ok(texture) = gtk::gdk::Texture::from_file(&file) {
-                    widgets.preview.set_paintable(Some(&texture));
+widgets.widgets.preview.set_paintable(Some(&texture));
                 }
 
-                // Update model
-                self.wallpaper = Some(wallpaper.clone());
-                self.cache_path = Some(cache_path.clone());
-
-                // Update metadata labels
-                widgets.title_label.set_label(&wallpaper.title);
-                widgets.description_label.set_label(&wallpaper.description);
-                widgets.attribution_label.set_label(&wallpaper.attribution);
+                widgets.widgets.title_label.set_label(&wallpaper.title);
+                widgets.widgets.description_label.set_label(&wallpaper.description);
+                widgets.widgets.attribution_label.set_label(&wallpaper.attribution);
 
                 // Restore UI from loading state
                 self.loading = false;
-                widgets.source_dropdown.set_sensitive(true);
-                widgets.refresh_button.set_sensitive(true);
-                set_button_child_label(&widgets.refresh_button, "Refresh Wallpaper");
+                widgets.widgets.source_dropdown.set_sensitive(true);
+                widgets.widgets.refresh_button.set_sensitive(true);
+                set_button_child_label(&widgets.widgets.refresh_button, "Refresh Wallpaper");
                 match crate::domain::create_desktop_backend() {
                     Ok(backend) => {
                         if let Err(e) = backend.set_wallpaper(&cache_path) {
@@ -376,9 +359,9 @@ impl AsyncComponent for App {
 
                 // Restore UI from loading state
                 self.loading = false;
-                widgets.source_dropdown.set_sensitive(true);
-                widgets.refresh_button.set_sensitive(true);
-                set_button_child_label(&widgets.refresh_button, "Refresh Wallpaper");
+                widgets.widgets.source_dropdown.set_sensitive(true);
+                widgets.widgets.refresh_button.set_sensitive(true);
+                set_button_child_label(&widgets.widgets.refresh_button, "Refresh Wallpaper");
             }
         }
     }
