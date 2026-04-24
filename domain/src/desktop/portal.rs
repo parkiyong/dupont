@@ -43,16 +43,28 @@ impl DesktopEnvironment for PortalDE {
             DEError::SetError(format!("Failed to open image file: {}", e))
         })?;
 
-        WallpaperRequest::default()
-            .set_on(SetOn::Background)
-            .show_preview(self.show_preview)
-            .build_file(&file.as_fd())
-            .await
-            .map_err(|e| {
-                DEError::SetError(format!("Failed to set wallpaper via portal: {}", e))
-            })?;
+        // Build the wallpaper request
+        let mut request = WallpaperRequest::default();
+        request = request.set_on(SetOn::Background);
+        request = request.show_preview(self.show_preview);
 
-        Ok(())
+        // Send the request and check response
+        match request.build_file(&file.as_fd()).await {
+            Ok(response) => {
+                eprintln!("DEBUG: Wallpaper portal response: {:?}", response);
+                Ok(())
+            }
+            Err(e) => {
+                eprintln!(
+                    "DEBUG: Wallpaper portal error (show_preview={}): {}",
+                    self.show_preview, e
+                );
+                Err(DEError::SetError(format!(
+                    "Failed to set wallpaper via portal (show_preview={}): {}",
+                    self.show_preview, e
+                )))
+            }
+        }
     }
 
     fn get_current_wallpaper(&self) -> Result<Option<PathBuf>, DEError> {

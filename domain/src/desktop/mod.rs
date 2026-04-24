@@ -164,7 +164,7 @@ mod tests {
     #[cfg(target_os = "windows")]
     #[test]
     fn create_desktop_backend_windows() {
-        let result = create_desktop_backend();
+        let result = create_desktop_backend(true);
         assert!(result.is_ok());
         assert_eq!(result.unwrap().name(), "Windows");
     }
