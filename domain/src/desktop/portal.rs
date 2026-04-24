@@ -29,7 +29,7 @@ impl DesktopEnvironment for PortalDE {
         })?;
 
         WallpaperRequest::default()
-            .set_on(SetOn::Both)
+            .set_on(SetOn::Background)
             .show_preview(false)
             .build_file(&file.as_fd())
             .await
@@ -50,6 +50,6 @@ impl DesktopEnvironment for PortalDE {
     }
 
     fn is_available(&self) -> bool {
-        true
+        cfg!(target_os = "linux")
     }
 }

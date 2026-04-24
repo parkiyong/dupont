@@ -11,5 +11,5 @@ reqwest = { version = "0.12", features = ["json"] }
 thiserror = "2.0"
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
 dirs = "5.0"
-ashpd = "0.10"
+ashpd = "0.10.3"
 gio = "0.20"

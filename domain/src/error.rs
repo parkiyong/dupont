@@ -47,9 +47,6 @@ pub enum DEError {
     #[error("Desktop environment not supported: {de}")]
     UnsupportedDE { de: String },
 
-    #[error("GSettings schema not found: {schema}")]
-    SchemaNotFound { schema: String },
-
     #[error("Wallpaper portal not available")]
     PortalUnavailable,
 
@@ -97,25 +94,6 @@ mod tests {
         );
     }
 
-    /// DESK-04: DEError::SchemaNotFound Display contains the schema name.
-    #[test]
-    fn schema_not_found_display_contains_schema() {
-        let err = DEError::SchemaNotFound {
-            schema: "org.gnome.desktop.background".to_string(),
-        };
-        let msg = format!("{}", err);
-        assert!(
-            msg.contains("schema not found"),
-            "SchemaNotFound display should mention 'schema not found', got: {}",
-            msg
-        );
-        assert!(
-            msg.contains("org.gnome.desktop.background"),
-            "SchemaNotFound display should contain the schema name, got: {}",
-            msg
-        );
-    }
-
     /// DESK-04: DEError::DetectionFailed Display is a human-readable message.
     #[test]
     fn detection_failed_display_is_human_readable() {
@@ -138,9 +116,6 @@ mod tests {
         let variants: Vec<DEError> = vec![
             DEError::SetError("test detail".into()),
             DEError::UnsupportedDE { de: "sway".into() },
-            DEError::SchemaNotFound {
-                schema: "org.test.schema".into(),
-            },
             DEError::PortalUnavailable,
             DEError::DetectionFailed,
         ];
