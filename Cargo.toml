@@ -39,7 +39,7 @@ dirs = "5.0"
 cfg-if = "1.0"
 
 [target.'cfg(target_os = "linux")'.dependencies]
-ashpd = "0.10.3"
+wallpaper = "3"
 
 [target.'cfg(target_os = "windows")'.dependencies]
 windows-sys = { version = "0.59", features = ["Win32_UI_Shell", "Win32_Foundation", "Win32_System_Com"] }
