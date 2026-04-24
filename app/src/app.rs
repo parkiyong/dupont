@@ -259,7 +259,7 @@ impl AsyncComponent for App {
 
     async fn update_with_view(
         &mut self,
-        _widgets: &mut Self::Widgets,
+        widgets: &mut Self::Widgets,
         message: Self::Input,
         sender: AsyncComponentSender<Self>,
         _root: &Self::Root,
@@ -270,6 +270,11 @@ impl AsyncComponent for App {
                     return;
                 }
                 self.loading = true;
+
+                // Update UI to loading state
+                widgets.source_dropdown.set_sensitive(false);
+                widgets.refresh_button.set_sensitive(false);
+                set_button_child_spinner(&widgets.refresh_button);
 
                 // Clone what we need for the async command
                 let source_id = self.active_source_id.clone();
@@ -392,7 +397,7 @@ impl AsyncComponent for App {
 }
 
 /// Replace the button's child widget with a spinning gtk::Spinner.
-fn _set_button_child_spinner(button: &gtk::Button) {
+fn set_button_child_spinner(button: &gtk::Button) {
     let spinner = gtk::Spinner::builder()
         .spinning(true)
         .width_request(24)

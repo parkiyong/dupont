@@ -31,8 +31,8 @@ Two-crate Cargo workspace with clean domain/UI separation:
   - `cache.rs` — LRU image cache (~500MB/50 images/30 days)
   - `desktop/mod.rs` — `DesktopEnvironment` trait + `create_desktop_backend()` factory (reads `XDG_CURRENT_DESKTOP`)
   - `desktop/portal.rs` — GNOME wallpaper via Portal API (ashpd/DBus)
-  - `desktop/cosmic.rs` — COSMIC wallpaper via direct RON file write
   - `error.rs` — `SourceError`, `CacheError`, `DEError` (thiserror)
+
   - `wallpaper.rs` — `Wallpaper` struct (id, url, title, description, attribution, source)
 
 - **`app/` (dupont-app)** — GTK4/relm4 UI

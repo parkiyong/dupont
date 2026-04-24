@@ -11,7 +11,7 @@ pub use desktop::{
     create_desktop_backend, detect_desktop_environment, DesktopEnvironment,
 };
 #[cfg(target_os = "linux")]
-pub use desktop::{CosmicDE, PortalDE};
+pub use desktop::PortalDE;
 #[cfg(target_os = "windows")]
 pub use desktop::WindowsDE;
 pub use error::{CacheError, DEError, SourceError};
