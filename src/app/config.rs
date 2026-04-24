@@ -8,7 +8,6 @@ use std::path::PathBuf;
 pub struct Config {
     pub bing_market: String,
     pub spotlight_locale: String,
-    pub active_source: String,
     pub show_preview: bool,
 }
 
@@ -17,7 +16,6 @@ impl Default for Config {
         Self {
             bing_market: "en-US".to_string(),
             spotlight_locale: "en-US".to_string(),
-            active_source: "bing".to_string(),
             show_preview: true,
         }
     }

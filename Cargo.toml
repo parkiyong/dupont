@@ -1,8 +1,8 @@
 [package]
 name = "dupont"
 version = "1.2.0"
-edition = "2021"
-description = "A native Linux desktop wallpaper app for Bing WOTD and Microsoft Spotlight"
+edition = "2024"
+description = "A native desktop wallpaper app for Bing WOTD and Microsoft Spotlight"
 license = "GPL-3.0"
 repository = "https://github.com/parkiyong/dupont"
 

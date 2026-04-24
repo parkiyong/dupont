@@ -77,11 +77,7 @@ impl AsyncComponent for App {
         let cfg = crate::app::config::Config::load();
 
         let source_ids = vec!["bing".to_string(), "spotlight".to_string()];
-        let active_source_id = if source_ids.contains(&cfg.active_source) {
-            cfg.active_source.clone()
-        } else {
-            "bing".to_string()
-        };
+        let active_source_id = "bing".to_string();
 
         let model = App {
             wallpaper: None,
@@ -315,15 +311,6 @@ impl AsyncComponent for App {
 
             AppMsg::SourceChanged(id) => {
                 self.active_source_id = id.clone();
-                let cfg = crate::app::config::Config {
-                    bing_market: self.bing_market.borrow().clone(),
-                    spotlight_locale: self.spotlight_locale.borrow().clone(),
-                    active_source: id,
-                    show_preview: *self.show_preview.borrow(),
-                };
-                if let Err(e) = cfg.save() {
-                    eprintln!("Failed to save config: {}", e);
-                }
                 sender.input(AppMsg::Refresh);
             }
 
@@ -334,7 +321,6 @@ impl AsyncComponent for App {
                 let cfg = crate::app::config::Config {
                     bing_market,
                     spotlight_locale,
-                    active_source: self.active_source_id.clone(),
                     show_preview,
                 };
                 if let Err(e) = cfg.save() {
