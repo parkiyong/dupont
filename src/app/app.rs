@@ -37,8 +37,6 @@ pub struct WidgetsPlus {
 }
 
 pub struct App {
-    wallpaper: Option<crate::domain::Wallpaper>,
-    cache_path: Option<PathBuf>,
     cache: Arc<tokio::sync::Mutex<crate::domain::Cache>>,
     loading: bool,
     bing_market: Rc<RefCell<String>>,
@@ -80,8 +78,6 @@ impl AsyncComponent for App {
         let cfg = crate::app::config::Config::load();
 
         let model = App {
-            wallpaper: None,
-            cache_path: None,
             cache,
             loading: false,
             bing_market: Rc::new(RefCell::new(cfg.bing_market)),
