@@ -3,11 +3,18 @@ use std::path::PathBuf;
 use std::rc::Rc;
 use std::sync::Arc;
 
-use adw::prelude::*;
+use cfg_if::cfg_if;
+use gtk::prelude::*;
 use relm4::{
     component::{AsyncComponent, AsyncComponentParts, AsyncComponentSender},
     prelude::*,
 };
+
+cfg_if! {
+    if #[cfg(feature = "gnome")] {
+        use adw::prelude::*;
+    }
+}
 
 use crate::messages::AppMsg;
 
@@ -23,7 +30,11 @@ pub enum CmdOut {
 
 /// Widgets struct -- stores references to all named widgets.
 pub struct Widgets {
+    #[cfg(feature = "gnome")]
     pub overlay: adw::ToastOverlay,
+    #[cfg(not(feature = "gnome"))]
+    pub overlay: gtk::Overlay,
+
     pub preview: gtk::Picture,
     pub title_label: gtk::Label,
     pub description_label: gtk::Label,
@@ -48,15 +59,33 @@ impl AsyncComponent for App {
     type Input = AppMsg;
     type Output = ();
     type CommandOutput = CmdOut;
-    type Root = adw::ApplicationWindow;
+
+    cfg_if! {
+        if #[cfg(feature = "gnome")] {
+            type Root = adw::ApplicationWindow;
+        } else {
+            type Root = gtk::ApplicationWindow;
+        }
+    }
+
     type Widgets = Widgets;
 
     fn init_root() -> Self::Root {
-        adw::ApplicationWindow::builder()
-            .title("Dupont")
-            .default_width(480)
-            .default_height(520)
-            .build()
+        cfg_if! {
+            if #[cfg(feature = "gnome")] {
+                adw::ApplicationWindow::builder()
+                    .title("Dupont")
+                    .default_width(480)
+                    .default_height(520)
+                    .build()
+            } else {
+                gtk::ApplicationWindow::builder()
+                    .title("Dupont")
+                    .default_width(480)
+                    .default_height(520)
+                    .build()
+            }
+        }
     }
 
     async fn init(
@@ -95,7 +124,10 @@ impl AsyncComponent for App {
         };
 
         // Build widget tree manually
+        #[cfg(feature = "gnome")]
         let overlay = adw::ToastOverlay::new();
+        #[cfg(not(feature = "gnome"))]
+        let overlay = gtk::Overlay::new();
 
         let vbox = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
@@ -106,9 +138,18 @@ impl AsyncComponent for App {
             .margin_bottom(24)
             .build();
 
-        let clamp = adw::Clamp::builder()
-            .maximum_size(600)
-            .build();
+        cfg_if! {
+            if #[cfg(feature = "gnome")] {
+                let clamp = adw::Clamp::builder()
+                    .maximum_size(600)
+                    .build();
+            } else {
+                let clamp = gtk::Box::builder()
+                    .orientation(gtk::Orientation::Vertical)
+                    .halign(gtk::Align::Center)
+                    .build();
+            }
+        }
 
         let inner_box = gtk::Box::builder()
             .orientation(gtk::Orientation::Vertical)
@@ -187,14 +228,21 @@ impl AsyncComponent for App {
         inner_box.append(&meta_box);
         inner_box.append(&controls_box);
 
+        #[cfg(feature = "gnome")]
         clamp.set_child(Some(&inner_box));
+        #[cfg(not(feature = "gnome"))]
+        clamp.append(&inner_box);
+
         vbox.append(&clamp);
+
+        #[cfg(feature = "gnome")]
+        overlay.set_child(Some(&vbox));
+        #[cfg(not(feature = "gnome"))]
         overlay.set_child(Some(&vbox));
 
-        // Add header bar with settings button using adw::HeaderBar
-        let header = adw::HeaderBar::new();
-        header.set_show_start_title_buttons(true);
-        header.set_show_end_title_buttons(true);
+        // Add header bar with settings button
+        let header = gtk::HeaderBar::new();
+        header.set_show_title_buttons(true);
 
         let settings_btn = gtk::Button::new();
         let settings_icon = gtk::Image::from_icon_name("preferences-system-symbolic");
@@ -202,7 +250,7 @@ impl AsyncComponent for App {
         settings_btn.set_tooltip_text(Some("Preferences"));
         header.pack_end(&settings_btn);
 
-        // Wire settings button — recreate window each time to avoid GTK4 destroy issue
+        // Wire settings button
         let settings_root = root.clone();
         let settings_sender = sender.clone();
         let settings_market = model.bing_market.clone();
@@ -217,12 +265,17 @@ impl AsyncComponent for App {
             win.present();
         });
 
-        // Use adw::ToolbarView to hold header bar and content
-        let toolbar_view = adw::ToolbarView::new();
-        toolbar_view.add_top_bar(&header);
-        toolbar_view.set_content(Some(&overlay));
-
-        root.set_content(Some(&toolbar_view));
+        cfg_if! {
+            if #[cfg(feature = "gnome")] {
+                let toolbar_view = adw::ToolbarView::new();
+                toolbar_view.add_top_bar(&header);
+                toolbar_view.set_content(Some(&overlay));
+                root.set_content(Some(&toolbar_view));
+            } else {
+                root.set_titlebar(Some(&header));
+                root.set_child(Some(&overlay));
+            }
+        }
 
         // Wire source dropdown signal
         let sender_clone = sender.clone();
@@ -392,9 +445,17 @@ impl AsyncComponent for App {
 
             CmdOut::FetchError(msg) => {
                 // Show error toast
-                let toast = adw::Toast::new(&msg);
-                toast.set_timeout(5);
-                widgets.overlay.add_toast(toast);
+                #[cfg(feature = "gnome")]
+                {
+                    let toast = adw::Toast::new(&msg);
+                    toast.set_timeout(5);
+                    widgets.overlay.add_toast(toast);
+                }
+                #[cfg(not(feature = "gnome"))]
+                {
+                    // Fallback for non-GNOME: just print to stderr or use a simple label
+                    eprintln!("Error: {}", msg);
+                }
 
                 // Restore UI from loading state
                 self.loading = false;
@@ -422,106 +483,210 @@ fn set_button_child_label(button: &gtk::Button, text: &str) {
     button.set_child(Some(&label));
 }
 
-/// Create settings window with Bing market and Spotlight locale configuration.
-fn create_settings_window(
-    bing_market: String,
-    spotlight_locale: String,
-    transient_for: Option<&adw::ApplicationWindow>,
-    sender: relm4::AsyncComponentSender<App>,
-) -> adw::Window {
-    let window = adw::Window::new();
+cfg_if! {
+    if #[cfg(feature = "gnome")] {
+        /// Create settings window with Bing market and Spotlight locale configuration.
+        fn create_settings_window(
+            bing_market: String,
+            spotlight_locale: String,
+            transient_for: Option<&adw::ApplicationWindow>,
+            sender: relm4::AsyncComponentSender<App>,
+        ) -> adw::Window {
+            let window = adw::Window::new();
 
-    if let Some(parent) = transient_for {
-        window.set_transient_for(Some(parent));
+            if let Some(parent) = transient_for {
+                window.set_transient_for(Some(parent));
+            }
+
+            window.set_title(Some("Dupont Preferences"));
+            window.set_modal(true);
+            window.set_default_size(400, 380);
+
+            let header = adw::HeaderBar::new();
+            header.set_show_end_title_buttons(true);
+
+            let toolbar = adw::ToolbarView::new();
+            toolbar.add_top_bar(&header);
+
+            let markets = [
+                "en-US", "zh-CN", "ja-JP", "en-AU", "en-GB", "de-DE", "en-NZ", "en-CA", "en-IN",
+                "fr-FR", "fr-CA",
+            ];
+            let market_names = [
+                "English (United States)",
+                "Chinese (Simplified)",
+                "Japanese (Japan)",
+                "English (Australia)",
+                "English (United Kingdom)",
+                "German (Germany)",
+                "English (New Zealand)",
+                "English (Canada)",
+                "English (India)",
+                "French (France)",
+                "French (Canada)",
+            ];
+            let market_list = gtk::StringList::new(&market_names);
+            let initial_index = markets
+                .iter()
+                .position(|&m| m == bing_market)
+                .unwrap_or(0) as u32;
+
+            let page = adw::PreferencesPage::new();
+
+            let bing_group = adw::PreferencesGroup::new();
+            bing_group.set_title("Bing");
+
+            let market_row = adw::ComboRow::new();
+            market_row.set_title("Market");
+            market_row.set_model(Some(&market_list));
+            market_row.set_selected(initial_index);
+
+            let spotlight_group = adw::PreferencesGroup::new();
+            spotlight_group.set_title("Spotlight");
+
+            let locale_list = gtk::StringList::new(&market_names);
+            let locale_initial_index = markets
+                .iter()
+                .position(|&m| m == spotlight_locale)
+                .unwrap_or(0) as u32;
+
+            let locale_row = adw::ComboRow::new();
+            locale_row.set_title("Locale");
+            locale_row.set_model(Some(&locale_list));
+            locale_row.set_selected(locale_initial_index);
+
+            // Wire market selection → send SettingsChanged
+            let sender1 = sender.clone();
+            let locale_row_clone1 = locale_row.clone();
+            market_row.connect_selected_notify(move |row| {
+                let market = markets[row.selected() as usize].to_string();
+                let locale = markets[locale_row_clone1.selected() as usize].to_string();
+                sender1.input(AppMsg::SettingsChanged {
+                    bing_market: market,
+                    spotlight_locale: locale,
+                });
+            });
+
+            // Wire locale selection → send SettingsChanged
+            let sender2 = sender.clone();
+            let market_row_clone = market_row.clone();
+            locale_row.connect_selected_notify(move |row| {
+                let locale = markets[row.selected() as usize].to_string();
+                let market = markets[market_row_clone.selected() as usize].to_string();
+                sender2.input(AppMsg::SettingsChanged {
+                    bing_market: market,
+                    spotlight_locale: locale,
+                });
+            });
+
+            bing_group.add(&market_row);
+            spotlight_group.add(&locale_row);
+            page.add(&bing_group);
+            page.add(&spotlight_group);
+            toolbar.set_content(Some(&page));
+            window.set_content(Some(&toolbar));
+
+            window
+        }
+    } else {
+        /// Create settings window with Bing market and Spotlight locale configuration.
+        fn create_settings_window(
+            bing_market: String,
+            spotlight_locale: String,
+            transient_for: Option<&gtk::ApplicationWindow>,
+            sender: relm4::AsyncComponentSender<App>,
+        ) -> gtk::Window {
+            let window = gtk::Window::new();
+
+            if let Some(parent) = transient_for {
+                window.set_transient_for(Some(parent));
+            }
+
+            window.set_title(Some("Dupont Preferences"));
+            window.set_modal(true);
+            window.set_default_size(400, 300);
+
+            let vbox = gtk::Box::new(gtk::Orientation::Vertical, 12);
+            vbox.set_margin_top(12);
+            vbox.set_margin_bottom(12);
+            vbox.set_margin_start(12);
+            vbox.set_margin_end(12);
+
+            let markets = [
+                "en-US", "zh-CN", "ja-JP", "en-AU", "en-GB", "de-DE", "en-NZ", "en-CA", "en-IN",
+                "fr-FR", "fr-CA",
+            ];
+            let market_names = [
+                "English (United States)",
+                "Chinese (Simplified)",
+                "Japanese (Japan)",
+                "English (Australia)",
+                "English (United Kingdom)",
+                "German (Germany)",
+                "English (New Zealand)",
+                "English (Canada)",
+                "English (India)",
+                "French (France)",
+                "French (Canada)",
+            ];
+            let market_list = gtk::StringList::new(&market_names);
+            
+            // Bing Market
+            let bing_label = gtk::Label::new(Some("Bing Market"));
+            bing_label.set_halign(gtk::Align::Start);
+            vbox.append(&bing_label);
+
+            let market_dropdown = gtk::DropDown::builder()
+                .model(&market_list)
+                .build();
+            let initial_index = markets
+                .iter()
+                .position(|&m| m == bing_market)
+                .unwrap_or(0) as u32;
+            market_dropdown.set_selected(initial_index);
+            vbox.append(&market_dropdown);
+
+            // Spotlight Locale
+            let spotlight_label = gtk::Label::new(Some("Spotlight Locale"));
+            spotlight_label.set_halign(gtk::Align::Start);
+            vbox.append(&spotlight_label);
+
+            let locale_list = gtk::StringList::new(&market_names);
+            let locale_dropdown = gtk::DropDown::builder()
+                .model(&locale_list)
+                .build();
+            let locale_initial_index = markets
+                .iter()
+                .position(|&m| m == spotlight_locale)
+                .unwrap_or(0) as u32;
+            locale_dropdown.set_selected(locale_initial_index);
+            vbox.append(&locale_dropdown);
+
+            // Wire signals
+            let sender1 = sender.clone();
+            let locale_dropdown_clone = locale_dropdown.clone();
+            market_dropdown.connect_selected_notify(move |dropdown| {
+                let market = markets[dropdown.selected() as usize].to_string();
+                let locale = markets[locale_dropdown_clone.selected() as usize].to_string();
+                sender1.input(AppMsg::SettingsChanged {
+                    bing_market: market,
+                    spotlight_locale: locale,
+                });
+            });
+
+            let sender2 = sender.clone();
+            let market_dropdown_clone = market_dropdown.clone();
+            locale_dropdown.connect_selected_notify(move |dropdown| {
+                let locale = markets[dropdown.selected() as usize].to_string();
+                let market = markets[market_dropdown_clone.selected() as usize].to_string();
+                sender2.input(AppMsg::SettingsChanged {
+                    bing_market: market,
+                    spotlight_locale: locale,
+                });
+            });
+
+            window.set_child(Some(&vbox));
+            window
+        }
     }
-
-    window.set_title(Some("Dupont Preferences"));
-    window.set_modal(true);
-    window.set_default_size(400, 380);
-
-    let header = adw::HeaderBar::new();
-    header.set_show_end_title_buttons(true);
-
-    let toolbar = adw::ToolbarView::new();
-    toolbar.add_top_bar(&header);
-
-    let markets = [
-        "en-US", "zh-CN", "ja-JP", "en-AU", "en-GB", "de-DE", "en-NZ", "en-CA", "en-IN",
-        "fr-FR", "fr-CA",
-    ];
-    let market_names = [
-        "English (United States)",
-        "Chinese (Simplified)",
-        "Japanese (Japan)",
-        "English (Australia)",
-        "English (United Kingdom)",
-        "German (Germany)",
-        "English (New Zealand)",
-        "English (Canada)",
-        "English (India)",
-        "French (France)",
-        "French (Canada)",
-    ];
-    let market_list = gtk::StringList::new(&market_names);
-    let initial_index = markets
-        .iter()
-        .position(|&m| m == bing_market)
-        .unwrap_or(0) as u32;
-
-    let page = adw::PreferencesPage::new();
-
-    let bing_group = adw::PreferencesGroup::new();
-    bing_group.set_title("Bing");
-
-    let market_row = adw::ComboRow::new();
-    market_row.set_title("Market");
-    market_row.set_model(Some(&market_list));
-    market_row.set_selected(initial_index);
-
-    let spotlight_group = adw::PreferencesGroup::new();
-    spotlight_group.set_title("Spotlight");
-
-    let locale_list = gtk::StringList::new(&market_names);
-    let locale_initial_index = markets
-        .iter()
-        .position(|&m| m == spotlight_locale)
-        .unwrap_or(0) as u32;
-
-    let locale_row = adw::ComboRow::new();
-    locale_row.set_title("Locale");
-    locale_row.set_model(Some(&locale_list));
-    locale_row.set_selected(locale_initial_index);
-
-    // Wire market selection → send SettingsChanged
-    let sender1 = sender.clone();
-    let locale_row_clone1 = locale_row.clone();
-    market_row.connect_selected_notify(move |row| {
-        let market = markets[row.selected() as usize].to_string();
-        let locale = markets[locale_row_clone1.selected() as usize].to_string();
-        sender1.input(AppMsg::SettingsChanged {
-            bing_market: market,
-            spotlight_locale: locale,
-        });
-    });
-
-    // Wire locale selection → send SettingsChanged
-    let sender2 = sender.clone();
-    let market_row_clone = market_row.clone();
-    locale_row.connect_selected_notify(move |row| {
-        let locale = markets[row.selected() as usize].to_string();
-        let market = markets[market_row_clone.selected() as usize].to_string();
-        sender2.input(AppMsg::SettingsChanged {
-            bing_market: market,
-            spotlight_locale: locale,
-        });
-    });
-
-    bing_group.add(&market_row);
-    spotlight_group.add(&locale_row);
-    page.add(&bing_group);
-    page.add(&spotlight_group);
-    toolbar.set_content(Some(&page));
-    window.set_content(Some(&toolbar));
-
-    window
 }

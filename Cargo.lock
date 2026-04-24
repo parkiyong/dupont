@@ -249,6 +249,7 @@ name = "dupont-app"
 version = "1.2.0"
 dependencies = [
  "anyhow",
+ "cfg-if",
  "dirs",
  "dupont-domain",
  "gio 0.20.12",
@@ -274,6 +275,7 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.18",
  "tokio",
+ "windows-sys 0.59.0",
 ]
 
 [[package]]

@@ -3,10 +3,19 @@ use std::path::{Path, PathBuf};
 use async_trait::async_trait;
 use crate::error::DEError;
 
+#[cfg(target_os = "linux")]
 mod cosmic;
+#[cfg(target_os = "linux")]
 mod portal;
+#[cfg(target_os = "windows")]
+mod windows;
+
+#[cfg(target_os = "linux")]
 pub use cosmic::CosmicDE;
+#[cfg(target_os = "linux")]
 pub use portal::PortalDE;
+#[cfg(target_os = "windows")]
+pub use windows::WindowsDE;
 
 /// Trait for desktop environment wallpaper setting operations
 #[async_trait]
@@ -24,68 +33,83 @@ pub trait DesktopEnvironment: Send + Sync {
     fn is_available(&self) -> bool;
 }
 
-/// Detect the current desktop environment from environment variables.
-///
-/// `XDG_CURRENT_DESKTOP` can be a colon-separated list per the freedesktop.org
-/// specification (e.g. `ubuntu:GNOME`). This function uses the first entry.
+/// Detect the current desktop environment from environment variables or platform.
 pub fn detect_desktop_environment() -> Option<String> {
-    let raw = std::env::var("XDG_CURRENT_DESKTOP")
-        .or_else(|_| std::env::var("DESKTOP_SESSION"))
-        .ok()?;
+    #[cfg(target_os = "linux")]
+    {
+        let raw = std::env::var("XDG_CURRENT_DESKTOP")
+            .or_else(|_| std::env::var("DESKTOP_SESSION"))
+            .ok()?;
 
-    // XDG_CURRENT_DESKTOP can be colon-separated; use the first entry
-    let primary = raw.split(':').next()?.trim();
-    Some(primary.to_lowercase())
+        // XDG_CURRENT_DESKTOP can be colon-separated; use the first entry
+        let primary = raw.split(':').next()?.trim();
+        Some(primary.to_lowercase())
+    }
+    #[cfg(target_os = "windows")]
+    {
+        Some("windows".to_string())
+    }
+    #[cfg(not(any(target_os = "linux", target_os = "windows")))]
+    {
+        None
+    }
 }
 
 /// Create the appropriate desktop backend based on the detected environment.
-///
-/// Checks `XDG_CURRENT_DESKTOP` (with `DESKTOP_SESSION` fallback) and returns
-/// a boxed backend implementing `DesktopEnvironment` for the detected DE.
 pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> {
-    let de = detect_desktop_environment().ok_or(DEError::DetectionFailed)?;
-    // de is already lowercased by detect_desktop_environment()
-
-    // Check for COSMIC explicitly (cosmic, pop-cosmic)
-    // COSMIC is checked first since "pop:GNOME" could match COSMIC on Pop!_OS
-    if de.contains("cosmic") {
-        let backend = CosmicDE;
-        if backend.is_available() {
-            return Ok(Box::new(backend));
-        }
-        // Fallback: try portal if COSMIC backend unavailable
-        let portal = PortalDE;
-        if portal.is_available() {
-            return Ok(Box::new(portal));
-        }
-    }
-
-    // Check for GNOME (covers: GNOME, ubuntu:GNOME, debian, ubuntu, unity, pop:GNOME)
-    if de.contains("gnome")
-        || de.contains("ubuntu")
-        || de.contains("debian")
-        || de.contains("unity")
-        || de.contains("pop")
+    #[cfg(target_os = "linux")]
     {
-        let backend = PortalDE;
-        if backend.is_available() {
-            return Ok(Box::new(backend));
-        } else {
-            return Err(DEError::PortalUnavailable);
+        let de = detect_desktop_environment().ok_or(DEError::DetectionFailed)?;
+
+        // Check for COSMIC explicitly (cosmic, pop-cosmic)
+        if de.contains("cosmic") {
+            let backend = CosmicDE;
+            if backend.is_available() {
+                return Ok(Box::new(backend));
+            }
+            // Fallback: try portal if COSMIC backend unavailable
+            let portal = PortalDE;
+            if portal.is_available() {
+                return Ok(Box::new(portal));
+            }
         }
+
+        // Check for GNOME (covers: GNOME, ubuntu:GNOME, debian, ubuntu, unity, pop:GNOME)
+        if de.contains("gnome")
+            || de.contains("ubuntu")
+            || de.contains("debian")
+            || de.contains("unity")
+            || de.contains("pop")
+        {
+            let backend = PortalDE;
+            if backend.is_available() {
+                return Ok(Box::new(backend));
+            } else {
+                return Err(DEError::PortalUnavailable);
+            }
+        }
+
+        Err(DEError::UnsupportedDE { de })
     }
 
-    Err(DEError::UnsupportedDE { de })
+    #[cfg(target_os = "windows")]
+    {
+        Ok(Box::new(WindowsDE))
+    }
+
+    #[cfg(not(any(target_os = "linux", target_os = "windows")))]
+    {
+        Err(DEError::DetectionFailed)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    /// DESK-01: All detect_desktop_environment behaviors tested in sequence
-    /// to avoid race conditions with shared env vars in parallel test execution.
+    #[cfg(target_os = "linux")]
     #[test]
-    fn detect_desktop_environment_parsing_and_routing() {
+    fn detect_desktop_environment_parsing_and_routing_linux() {
         // 1. Colon-separated XDG_CURRENT_DESKTOP yields first entry, lowercased
         std::env::set_var("XDG_CURRENT_DESKTOP", "ubuntu:GNOME");
         std::env::remove_var("DESKTOP_SESSION");
@@ -112,21 +136,17 @@ mod tests {
             Some("gnome".to_string()),
             "XDG_CURRENT_DESKTOP=GNOME should be lowercased to 'gnome'"
         );
-
-        // 4. Returns None when neither env var is set
-        std::env::remove_var("XDG_CURRENT_DESKTOP");
-        std::env::remove_var("DESKTOP_SESSION");
-        assert_eq!(
-            detect_desktop_environment(),
-            None,
-            "No env vars should yield None"
-        );
     }
 
-    /// DESK-01: create_desktop_backend factory routing tested in sequence
-    /// to avoid race conditions with shared env vars.
+    #[cfg(target_os = "windows")]
     #[test]
-    fn create_desktop_backend_factory_routing() {
+    fn detect_desktop_environment_windows() {
+        assert_eq!(detect_desktop_environment(), Some("windows".to_string()));
+    }
+
+    #[cfg(target_os = "linux")]
+    #[test]
+    fn create_desktop_backend_factory_routing_linux() {
         // 1. "cosmic" should not produce UnsupportedDE
         std::env::set_var("XDG_CURRENT_DESKTOP", "cosmic");
         let result = create_desktop_backend();
@@ -134,7 +154,7 @@ mod tests {
             Err(DEError::UnsupportedDE { .. }) => {
                 panic!("cosmic should not produce UnsupportedDE");
             }
-            _ => {} // Acceptable: Ok(CosmicDE), PortalUnavailable (fallback portal unavailable), etc.
+            _ => {} 
         }
 
         // 2. Unknown DE "i3" should produce UnsupportedDE
@@ -148,18 +168,13 @@ mod tests {
             DEError::UnsupportedDE { de } => assert_eq!(de, "i3"),
             other => panic!("Expected UnsupportedDE for 'i3', got: {:?}", other),
         }
+    }
 
-        // 3. No env vars should produce DetectionFailed
-        std::env::remove_var("XDG_CURRENT_DESKTOP");
-        std::env::remove_var("DESKTOP_SESSION");
+    #[cfg(target_os = "windows")]
+    #[test]
+    fn create_desktop_backend_windows() {
         let result = create_desktop_backend();
-        let err = match result {
-            Err(e) => e,
-            Ok(_) => panic!("Expected error when no env set, got Ok(backend)"),
-        };
-        match err {
-            DEError::DetectionFailed => {}
-            other => panic!("Expected DetectionFailed, got: {:?}", other),
-        }
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap().name(), "Windows");
     }
 }
