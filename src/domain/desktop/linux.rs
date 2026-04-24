@@ -20,8 +20,9 @@ impl DesktopEnvironment for WallpaperDE {
 
         if let Some(de) = detect_desktop_environment() {
             match de.as_str() {
-                s if s.contains("gnome") => set_gnome_dark_wallpaper(&uri),
-                s if s.contains("kde") || s.contains("plasma") => set_kde_dark_wallpaper(&uri),
+                s if s.contains("gnome") || s.contains("cinnamon") => {
+                    set_desktop_dark_wallpaper(&uri)
+                }
                 _ => {}
             }
         }
@@ -34,21 +35,11 @@ impl DesktopEnvironment for WallpaperDE {
     }
 }
 
-fn set_gnome_dark_wallpaper(uri: &str) {
+fn set_desktop_dark_wallpaper(uri: &str) {
+    let _ = Command::new("gsettings")
+        .args(["set", "org.cinnamon.desktop.background.picture-uri", "picture-uri-dark", uri])
+        .output();
     let _ = Command::new("gsettings")
         .args(["set", "org.gnome.desktop.background", "picture-uri-dark", uri])
-        .output();
-}
-
-fn set_kde_dark_wallpaper(uri: &str) {
-    let path = uri.strip_prefix("file://").unwrap_or(uri);
-    let _ = Command::new("kwriteconfig5")
-        .args(["--file", "plasma-org.kde.plasma.desktop(applets)", "--group", "Wallpaper", "--key", "image", path])
-        .output();
-    let _ = Command::new("kwriteconfig5")
-        .args(["--file", "plasma-org.kde.plasma.desktop(applets)", "--group", "Wallpaper", "--key", "fill", "2"])
-        .output();
-    let _ = Command::new("qdbus")
-        .args(["org.kde.plasmashell", "/PlasmaShell", "org.kde.PlasmaShell.reloadWallpaper"])
         .output();
 }
