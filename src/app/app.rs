@@ -216,21 +216,19 @@ impl AsyncComponent for App {
             let _ = sender_refresh.send(AppMsg::Refresh);
         });
 
-        // Set dropdown to default (bing, index 0)
+// Set dropdown to default (bing, index 0)
         source_dropdown.set_selected(0);
 
         let source_ids = vec!["bing".to_string(), "spotlight".to_string()];
 
-        // Wire dropdown to auto-refresh on source change (skip initial trigger)
+        // Wire dropdown to auto-refresh on source change
         let sender_source = sender.input_sender().clone();
-        let first_notify = std::cell::Cell::new(true);
         source_dropdown.connect_selected_notify(move |_| {
-            if first_notify.get() {
-                first_notify.set(false);
-                return;
-            }
             let _ = sender_source.send(AppMsg::Refresh);
         });
+
+        // Auto-refresh on startup
+        let _ = sender.input(AppMsg::Refresh);
 
         let widgets = Widgets {
             preview,
