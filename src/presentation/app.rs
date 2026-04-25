@@ -193,23 +193,30 @@ fn view(state: &AppState) -> Element<Message> {
         None => text("No wallpaper loaded").into(),
     };
 
-    let controls: Element<Message> = if state.loading {
+    let controls: Element<Message> = {
+        let source_picker = pick_list(
+            Source::all(),
+            Some(state.selected_source),
+            Message::SourceSelected,
+        )
+        .width(Length::Fill);
+
+        let refresh_btn = if state.loading {
+            button("Refreshing...")
+        } else {
+            button("Refresh").on_press(Message::Refresh)
+        };
+
+        let settings_btn = if state.loading {
+            button("Settings")
+        } else {
+            button("Settings").on_press(Message::SettingsOpen)
+        };
+
         Row::with_children([
-            text("Loading...").into(),
-        ])
-        .spacing(12)
-        .into()
-    } else {
-        Row::with_children([
-            pick_list(
-                Source::all(),
-                Some(state.selected_source),
-                Message::SourceSelected,
-            )
-            .width(Length::Fill)
-            .into(),
-            button("Refresh").on_press(Message::Refresh).into(),
-            button("Settings").on_press(Message::SettingsOpen).into(),
+            source_picker.into(),
+            refresh_btn.into(),
+            settings_btn.into(),
         ])
         .spacing(12)
         .into()
