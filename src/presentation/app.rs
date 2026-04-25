@@ -4,7 +4,7 @@ use std::sync::atomic::{AtomicU8, Ordering};
 use tokio::sync::Mutex;
 
 use iced::{
-    time::{self, Duration, Instant},
+    time::{self, Duration},
     widget::{button, container, text, Column, Row},
     Element, Length, Subscription, Task, Theme,
 };
@@ -69,12 +69,10 @@ impl AppState {
         let settings_repo = ConfigRepo::new();
         let settings = settings_repo.load();
 
-        let current_wallpaper = find_latest_cached_image(&cache);
-
         Self {
             cache: Arc::new(Mutex::new(cache)),
             settings_repo,
-            current_wallpaper,
+            current_wallpaper: None,
             loading: false,
             show_settings: false,
             selected_source: Source::Bing,
@@ -86,8 +84,8 @@ impl AppState {
         iced::application(AppState::new, update, view)
             .title("Dupont")
             .theme(|_: &AppState| Theme::Dark)
-            .subscription(|state| {
-                if state.current_wallpaper.is_some() && INIT_COUNT.load(Ordering::Relaxed) > 0 {
+            .subscription(|_state| {
+                if INIT_COUNT.load(Ordering::Relaxed) > 0 {
                     INIT_COUNT.fetch_sub(1, Ordering::Relaxed);
                     time::every(Duration::from_secs(1)).map(|_| Message::Refresh)
                 } else {
@@ -290,22 +288,4 @@ fn settings_view(state: &AppState) -> Element<Message> {
     .center_x(Length::Fill)
     .center_y(Length::Fill)
     .into()
-}
-
-fn find_latest_cached_image(cache: &Cache) -> Option<(String, String, String, PathBuf)> {
-    use std::fs;
-    
-    let cache_dir = dirs::cache_dir()?.join("dupont");
-    let mut paths: Vec<_> = fs::read_dir(cache_dir).ok()?
-        .filter_map(|e| e.ok())
-        .map(|e| e.path())
-        .filter(|p| p.extension().map(|e| e == "jpg" || e == "png").unwrap_or(false))
-        .collect();
-    
-    paths.sort();
-    paths.reverse();
-    
-    let path = paths.into_iter().next()?;
-    let name = path.file_stem()?.to_string_lossy().to_string();
-    Some((name, String::new(), String::new(), path))
 }
