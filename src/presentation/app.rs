@@ -198,6 +198,21 @@ fn build_controls(state: &AppState) -> Element<Message> {
     let is_loading = state.loading;
     let selected = state.selected_source;
     
+    let (title_text, desc_text) = state.current_wallpaper.as_ref()
+        .map(|(t, d, _, _)| (t.clone(), d.clone()))
+        .unwrap_or((String::new(), String::new()));
+    
+    let info: Element<Message> = {
+        let title = title_text.clone();
+        let desc = desc_text.clone();
+        Column::with_children([
+            text(title).size(12).into(),
+            text(desc).size(10).into(),
+        ])
+        .spacing(0)
+        .into()
+    };
+    
     let bing_btn = if is_loading || selected == Source::Bing {
         button("Bing")
     } else {
@@ -227,6 +242,8 @@ fn build_controls(state: &AppState) -> Element<Message> {
         spotlight_btn.into(),
         refresh_btn.into(),
         settings_btn.into(),
+        Space::new().width(Length::Fill).into(),
+        info,
     ])
     .spacing(8)
     .padding([4, 4])
