@@ -3,14 +3,14 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use iced::{
-    time::{self, Duration, Instant},
     widget::{button, container, text, Column, Row},
-    Element, Length, Subscription, Task, Theme,
+    Element, Length, Task, Theme,
 };
+use iced_widget::Space;
 
 use crate::application::dto::SettingsDto;
 use crate::domain::{BingSource, Cache, SpotlightSource};
-use crate::infrastructure::desktop::{create_desktop_backend, is_dark_mode};
+use crate::infrastructure::desktop::create_desktop_backend;
 use crate::infrastructure::persistence::ConfigRepo;
 
 #[derive(Debug, Clone)]
@@ -20,7 +20,6 @@ pub enum Message {
     SettingsOpen,
     SettingsClose,
     WallpaperFetched(Result<(String, String, String, PathBuf), String>),
-    ThemeCheck(bool),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -57,7 +56,6 @@ pub struct AppState {
     show_settings: bool,
     selected_source: Source,
     settings: SettingsDto,
-    is_dark_mode: bool,
 }
 
 impl AppState {
@@ -67,35 +65,24 @@ impl AppState {
         let settings_repo = ConfigRepo::new();
         let settings = settings_repo.load();
 
+        let current_wallpaper = find_latest_cached_image(&cache);
+
         Self {
             cache: Arc::new(Mutex::new(cache)),
             settings_repo,
-            current_wallpaper: None,
+            current_wallpaper,
             loading: false,
             show_settings: false,
             selected_source: Source::Bing,
             settings,
-            is_dark_mode: is_dark_mode(),
         }
     }
 
-pub fn run() -> iced::Result {
+    pub fn run() -> iced::Result {
         iced::application(AppState::new, update, view)
-            .subscription(subscription)
-            .theme(|state: &AppState| {
-                if state.is_dark_mode {
-                    Theme::Dark
-                } else {
-                    Theme::Light
-                }
-            })
+            .theme(|_: &AppState| Theme::Dark)
             .run()
     }
-}
-
-fn subscription(_state: &AppState) -> Subscription<Message> {
-    time::every(Duration::from_secs(5))
-        .map(|_: Instant| Message::ThemeCheck(is_dark_mode()))
 }
 
 fn update(state: &mut AppState, message: Message) -> Task<Message> {
@@ -178,13 +165,6 @@ fn update(state: &mut AppState, message: Message) -> Task<Message> {
             }
             Task::none()
         }
-
-        Message::ThemeCheck(is_dark) => {
-            if state.is_dark_mode != is_dark {
-                state.is_dark_mode = is_dark;
-            }
-            Task::none()
-        }
     }
 }
 
@@ -193,81 +173,16 @@ fn view(state: &AppState) -> Element<Message> {
         return settings_view(state);
     }
 
-    let title_text = state
-        .current_wallpaper
-        .as_ref()
-        .map(|(title, _, _, _)| title.as_str())
-        .unwrap_or("No wallpaper loaded");
-
-    let desc_text = state
-        .current_wallpaper
-        .as_ref()
-        .map(|(_, desc, _, _)| desc.as_str())
-        .unwrap_or("Select a source and click Refresh");
-
-    let attr_text = state
-        .current_wallpaper
-        .as_ref()
-        .map(|(_, _, attr, _)| attr.as_str())
-        .unwrap_or("");
-
-    let preview: Element<Message> = match &state.current_wallpaper {
-        Some((_, _, _, path)) => iced::widget::image(path).into(),
-        None => text("No wallpaper loaded").into(),
-    };
-
-    let controls: Element<Message> = {
-        let is_loading = state.loading;
-        let selected = state.selected_source;
-        
-        let bing_btn = if is_loading || selected == Source::Bing {
-            button("Bing")
-        } else {
-            button("Bing").on_press(Message::SourceSelected(Source::Bing))
-        };
-        
-        let spotlight_btn = if is_loading || selected == Source::Spotlight {
-            button("Spotlight")
-        } else {
-            button("Spotlight").on_press(Message::SourceSelected(Source::Spotlight))
-        };
-
-        let refresh_btn = if is_loading {
-            button("Refreshing...")
-        } else {
-            button("Refresh").on_press(Message::Refresh)
-        };
-
-        let settings_btn = if is_loading {
-            button("Settings")
-        } else {
-            button("Settings").on_press(Message::SettingsOpen)
-        };
-
-        Row::with_children([
-            bing_btn.into(),
-            spotlight_btn.into(),
-            refresh_btn.into(),
-            settings_btn.into(),
-        ])
-        .spacing(12)
-        .into()
-    };
-
-    Column::with_children([
-        container(preview).height(Length::FillPortion(3)).into(),
-        Column::with_children([
-            text(title_text).into(),
-            text(desc_text).into(),
-            text(attr_text).into(),
-        ])
-        .spacing(8)
-        .into(),
-        controls,
-    ])
-    .spacing(20)
-    .padding(24)
-    .into()
+    match &state.current_wallpaper {
+        Some((_, _, _, path)) => {
+            iced_widget::Image::new(iced_widget::image::Handle::from_path(path))
+                .width(Length::Fill)
+                .height(Length::Fill)
+                .content_fit(iced_core::ContentFit::Cover)
+                .into()
+        }
+        None => Space::new().width(Length::Fill).height(Length::Fill).into(),
+    }
 }
 
 fn settings_view(state: &AppState) -> Element<Message> {
@@ -296,4 +211,22 @@ fn settings_view(state: &AppState) -> Element<Message> {
     .center_x(Length::Fill)
     .center_y(Length::Fill)
     .into()
+}
+
+fn find_latest_cached_image(cache: &Cache) -> Option<(String, String, String, PathBuf)> {
+    use std::fs;
+    
+    let cache_dir = dirs::cache_dir()?.join("dupont");
+    let mut paths: Vec<_> = fs::read_dir(cache_dir).ok()?
+        .filter_map(|e| e.ok())
+        .map(|e| e.path())
+        .filter(|p| p.extension().map(|e| e == "jpg" || e == "png").unwrap_or(false))
+        .collect();
+    
+    paths.sort();
+    paths.reverse();
+    
+    let path = paths.into_iter().next()?;
+    let name = path.file_stem()?.to_string_lossy().to_string();
+    Some((name, String::new(), String::new(), path))
 }

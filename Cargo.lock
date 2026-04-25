@@ -994,6 +994,7 @@ dependencies = [
  "env_logger",
  "futures",
  "iced",
+ "iced_core",
  "iced_widget",
  "image",
  "log",
