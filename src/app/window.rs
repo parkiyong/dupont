@@ -162,6 +162,11 @@ impl AsyncComponent for App {
             .css_classes(["suggested-action"])
             .build();
 
+        let settings_btn = gtk::Button::builder()
+            .icon_name("preferences-system-symbolic")
+            .tooltip_text("Preferences")
+            .build();
+
         // Assemble widget tree
         meta_box.append(&title_label);
         meta_box.append(&description_label);
@@ -170,6 +175,7 @@ impl AsyncComponent for App {
         controls_box.append(&source_label);
         controls_box.append(&source_dropdown);
         controls_box.append(&refresh_button);
+        controls_box.append(&settings_btn);
 
         inner_box.append(&preview);
         inner_box.append(&meta_box);
@@ -177,16 +183,6 @@ impl AsyncComponent for App {
 
         clamp.append(&inner_box);
         vbox.append(&clamp);
-
-        // Add header bar with settings button
-        let header = gtk::HeaderBar::new();
-        header.set_show_title_buttons(true);
-
-        let settings_btn = gtk::Button::new();
-        let settings_icon = gtk::Image::from_icon_name("preferences-system-symbolic");
-        settings_btn.set_child(Some(&settings_icon));
-        settings_btn.set_tooltip_text(Some("Preferences"));
-        header.pack_end(&settings_btn);
 
         // Wire settings button
         let settings_root = root.clone();
@@ -203,7 +199,6 @@ impl AsyncComponent for App {
             win.present();
         });
 
-        root.set_titlebar(Some(&header));
         root.set_child(Some(&vbox));
 
         // Wire refresh button signal
