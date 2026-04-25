@@ -14,14 +14,11 @@ struct BingResponse {
 }
 
 #[derive(Debug, Deserialize)]
-#[allow(dead_code)]
 struct BingImage {
     #[serde(rename = "url")]
     url_path: String,
     #[serde(rename = "copyright")]
     description: String,
-    #[serde(rename = "copyrightlink")]
-    attribution_url: String,
     #[serde(rename = "title")]
     title: String,
     #[serde(rename = "startdate")]

@@ -1,5 +1,5 @@
 use std::io::Cursor;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use image::{ImageFormat, ImageReader, Limits};
@@ -71,18 +71,6 @@ impl Cache {
     /// Defaults: 500MB max size, 50 max images, 30 days max age.
     pub fn with_defaults() -> Result<Self, CacheError> {
         Self::new(CacheConfig::default())
-    }
-
-    /// Get the cache directory path
-    #[allow(dead_code)]
-    pub fn cache_dir(&self) -> &Path {
-        &self.cache_dir
-    }
-
-    /// Get cache configuration
-    #[allow(dead_code)]
-    pub fn config(&self) -> &CacheConfig {
-        &self.config
     }
 
     /// Load existing cache entries from disk
@@ -174,24 +162,21 @@ impl Cache {
         // Download image bytes
         let client = reqwest::Client::new();
         let response = client.get(&wallpaper.url).send().await.map_err(|e| {
-            CacheError::IoError(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("HTTP request failed: {}", e),
-            ))
+            CacheError::IoError(std::io::Error::other(format!("HTTP request failed: {}", e)))
         })?;
 
         if !response.status().is_success() {
-            return Err(CacheError::IoError(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("HTTP error: {}", response.status()),
-            )));
+            return Err(CacheError::IoError(std::io::Error::other(format!(
+                "HTTP error: {}",
+                response.status()
+            ))));
         }
 
         let image_bytes = response.bytes().await.map_err(|e| {
-            CacheError::IoError(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to download image: {}", e),
-            ))
+            CacheError::IoError(std::io::Error::other(format!(
+                "Failed to download image: {}",
+                e
+            )))
         })?;
 
         // Validate image format and detect file extension in a single pass
@@ -247,7 +232,7 @@ impl Cache {
         let cursor = Cursor::new(image_bytes);
         let mut reader = ImageReader::new(cursor)
             .with_guessed_format()
-            .map_err(|e| image::ImageError::IoError(e))?;
+            .map_err(image::ImageError::IoError)?;
         reader.limits(limits);
 
         // Get format before decoding (decode consumes self)
@@ -345,23 +330,13 @@ impl Cache {
         }
         Ok(())
     }
-
-    /// Manually trigger cache cleanup
-    ///
-    /// Returns the number of entries removed during cleanup.
-    #[allow(dead_code)]
-    pub async fn cleanup(&mut self) -> Result<usize, CacheError> {
-        let initial_count = self.entries.len();
-        self.evict_if_needed().await?;
-        Ok(initial_count - self.entries.len())
-    }
 }
 
 /// Convert a `SystemTime` to Unix timestamp in seconds
 fn to_unix_secs(time: SystemTime) -> Result<u64, CacheError> {
     Ok(time
         .duration_since(UNIX_EPOCH)
-        .map_err(|e| std::io::Error::new(std::io::ErrorKind::Other, e))?
+        .map_err(std::io::Error::other)?
         .as_secs())
 }
 

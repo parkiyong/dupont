@@ -224,7 +224,7 @@ impl AsyncComponent for App {
         });
 
         // Auto-refresh on startup
-        let _ = sender.input(AppMsg::Refresh);
+        sender.input(AppMsg::Refresh);
 
         let widgets = Widgets {
             preview,

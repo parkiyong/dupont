@@ -247,7 +247,6 @@ version = "1.2.0"
 dependencies = [
  "anyhow",
  "async-trait",
- "cfg-if",
  "dirs 5.0.1",
  "gio 0.20.12",
  "gtk4",

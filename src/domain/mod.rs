@@ -5,7 +5,6 @@ pub mod source;
 pub mod sources;
 pub mod wallpaper;
 
-// Re-export commonly used types for convenience
 pub use cache::Cache;
 #[cfg(target_os = "windows")]
 pub use desktop::WindowsDE;

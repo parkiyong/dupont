@@ -2,16 +2,3 @@
 # https://rust-lang.github.io/rust-clippy/
 
 msrv = "1.75"
-
-[dereference]
-run-always = false
-
-[enum-variant-name]
-min-len = 3
-max-len = 30
-
-[too-many-arguments-threshold]
-threshold = 8
-
-[result-large-stmt]
-min-size = 30
