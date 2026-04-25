@@ -3,7 +3,7 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use iced::{
-    widget::{button, container, pick_list, text, Column, Row},
+    widget::{button, container, text, Column, Row},
     Element, Length, Task, Theme,
 };
 
@@ -77,6 +77,7 @@ impl AppState {
 
     pub fn run() -> iced::Result {
         iced::application(AppState::new, update, view)
+            .title("Dupont")
             .theme(|_: &AppState| Theme::Dark)
             .run()
     }
@@ -194,27 +195,36 @@ fn view(state: &AppState) -> Element<Message> {
     };
 
     let controls: Element<Message> = {
-        let source_picker = pick_list(
-            Source::all(),
-            Some(state.selected_source),
-            Message::SourceSelected,
-        )
-        .width(Length::Fill);
+        let is_loading = state.loading;
+        let selected = state.selected_source;
+        
+        let bing_btn = if is_loading || selected == Source::Bing {
+            button("Bing")
+        } else {
+            button("Bing").on_press(Message::SourceSelected(Source::Bing))
+        };
+        
+        let spotlight_btn = if is_loading || selected == Source::Spotlight {
+            button("Spotlight")
+        } else {
+            button("Spotlight").on_press(Message::SourceSelected(Source::Spotlight))
+        };
 
-        let refresh_btn = if state.loading {
+        let refresh_btn = if is_loading {
             button("Refreshing...")
         } else {
             button("Refresh").on_press(Message::Refresh)
         };
 
-        let settings_btn = if state.loading {
+        let settings_btn = if is_loading {
             button("Settings")
         } else {
             button("Settings").on_press(Message::SettingsOpen)
         };
 
         Row::with_children([
-            source_picker.into(),
+            bing_btn.into(),
+            spotlight_btn.into(),
             refresh_btn.into(),
             settings_btn.into(),
         ])
