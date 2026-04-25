@@ -1,21 +1,22 @@
 use crate::application::dto::SettingsDto;
-use crate::application::ports::ConfigRepository;
-use crate::application::ports::config_repository::ConfigError;
 use std::fs;
 use std::path::PathBuf;
 
-pub struct ConfigRepoImpl {
+pub struct ConfigRepo {
     path: PathBuf,
 }
 
-impl ConfigRepoImpl {
-    pub fn new(path: PathBuf) -> Self {
-        Self { path }
+impl ConfigRepo {
+    pub fn new() -> Self {
+        Self {
+            path: dirs::config_dir()
+                .unwrap_or_else(|| PathBuf::from("."))
+                .join("dupont")
+                .join("config.json"),
+        }
     }
-}
 
-impl ConfigRepository for ConfigRepoImpl {
-    fn load(&self) -> SettingsDto {
+    pub fn load(&self) -> SettingsDto {
         if !self.path.exists() {
             let settings = SettingsDto::default();
             let _ = self.save(&settings);
@@ -38,13 +39,26 @@ impl ConfigRepository for ConfigRepoImpl {
         })
     }
 
-    fn save(&self, settings: &SettingsDto) -> Result<(), ConfigError> {
+    pub fn save(&self, settings: &SettingsDto) -> Result<(), String> {
         if let Some(parent) = self.path.parent() {
-            fs::create_dir_all(parent)?;
+            fs::create_dir_all(parent).map_err(|e| e.to_string())?;
         }
-        let data = serde_json::to_string_pretty(settings)
-            .map_err(|e| ConfigError::SerializationError(e.to_string()))?;
-        fs::write(&self.path, data)?;
+        let data = serde_json::to_string_pretty(settings).map_err(|e| e.to_string())?;
+        fs::write(&self.path, data).map_err(|e| e.to_string())?;
         Ok(())
+    }
+}
+
+impl Default for ConfigRepo {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
+impl Clone for ConfigRepo {
+    fn clone(&self) -> Self {
+        Self {
+            path: self.path.clone(),
+        }
     }
 }

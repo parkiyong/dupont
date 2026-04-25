@@ -1,6 +1,6 @@
 [package]
 name = "dupont"
-version = "1.2.0"
+version = "1.3.0"
 edition = "2024"
 description = "A native desktop wallpaper app for Bing WOTD and Microsoft Spotlight"
 license = "GPL-3.0"
@@ -11,34 +11,22 @@ name = "dupont"
 path = "src/main.rs"
 
 [dependencies]
-# Async & Runtime
-tokio = { version = "1.51", features = ["rt-multi-thread", "macros", "fs"] }
-async-trait = "0.1"
-
-# UI
-relm4 = { version = "0.11" }
-gtk = { version = "0.11", package = "gtk4", features = ["v4_12"] }
-gio = { version = "0.20" }
-
-# Serialization
+iced = { version = "0.14", features = ["image", "lazy", "tokio"] }
+iced_widget = "0.14"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
-
-# HTTP
+tokio = { version = "1.51", features = ["rt-multi-thread", "macros", "fs"] }
+async-trait = "0.1"
 reqwest = { version = "0.12", features = ["json"] }
-
-# Image handling
 image = { version = "0.25", default-features = false, features = ["jpeg", "png", "webp"] }
-
-# Error handling
 thiserror = "2.0"
-anyhow = "1.0"
-
-# Utilities
 dirs = "5.0"
+log = "0.4"
+env_logger = "0.11"
+futures = "0.3"
 
 [target.'cfg(target_os = "linux")'.dependencies]
 wallpaper = "3"
 
 [target.'cfg(target_os = "windows")'.dependencies]
-windows-sys = { version = "0.59", features = ["Win32_UI_Shell", "Win32_Foundation", "Win32_System_Com"] }
+wallpaper = "3"

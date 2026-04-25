@@ -1,4 +1,2 @@
-pub mod messages;
-pub mod state;
-pub use messages::AppMsg;
-pub use state::AppState;
+pub mod app;
+pub use app::{AppState, Message};
