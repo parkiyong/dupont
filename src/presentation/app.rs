@@ -3,8 +3,8 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use iced::{
+    widget::{button, container, pick_list, text, Column, Row},
     Element, Length, Task, Theme,
-    widget::{Column, Row, button, container, pick_list, text},
 };
 
 use crate::application::dto::SettingsDto;
@@ -193,21 +193,27 @@ fn view(state: &AppState) -> Element<Message> {
         None => text("No wallpaper loaded").into(),
     };
 
-    let source_picker: Element<Message> = pick_list(
-        Source::all(),
-        Some(state.selected_source),
-        Message::SourceSelected,
-    )
-    .width(Length::Fill)
-    .into();
-
-    let controls: Element<Message> = Row::with_children([
-        source_picker,
-        button("Refresh").on_press(Message::Refresh).into(),
-        button("Settings").on_press(Message::SettingsOpen).into(),
-    ])
-    .spacing(12)
-    .into();
+    let controls: Element<Message> = if state.loading {
+        Row::with_children([
+            text("Loading...").into(),
+        ])
+        .spacing(12)
+        .into()
+    } else {
+        Row::with_children([
+            pick_list(
+                Source::all(),
+                Some(state.selected_source),
+                Message::SourceSelected,
+            )
+            .width(Length::Fill)
+            .into(),
+            button("Refresh").on_press(Message::Refresh).into(),
+            button("Settings").on_press(Message::SettingsOpen).into(),
+        ])
+        .spacing(12)
+        .into()
+    };
 
     Column::with_children([
         container(preview).height(Length::FillPortion(3)).into(),
