@@ -40,14 +40,6 @@ pub enum DEError {
 
     #[error("Desktop environment not supported: {de}")]
     UnsupportedDE { de: String },
-
-    #[allow(dead_code)]
-    #[error("Wallpaper portal not available")]
-    PortalUnavailable,
-
-    #[allow(dead_code)]
-    #[error("Failed to detect desktop environment")]
-    DetectionFailed,
 }
 
 #[cfg(test)]
@@ -90,30 +82,12 @@ mod tests {
         );
     }
 
-    /// DESK-04: DEError::DetectionFailed Display is a human-readable message.
-    #[test]
-    fn detection_failed_display_is_human_readable() {
-        let err = DEError::DetectionFailed;
-        let msg = format!("{}", err);
-        assert!(
-            msg.contains("Failed to detect"),
-            "DetectionFailed display should mention 'Failed to detect', got: {}",
-            msg
-        );
-        assert!(
-            !msg.is_empty(),
-            "DetectionFailed display should not be empty"
-        );
-    }
-
     /// DESK-04: All DEError variants produce non-empty, human-readable messages.
     #[test]
     fn all_de_error_variants_produce_readable_messages() {
         let variants: Vec<DEError> = vec![
             DEError::SetError("test detail".into()),
             DEError::UnsupportedDE { de: "sway".into() },
-            DEError::PortalUnavailable,
-            DEError::DetectionFailed,
         ];
 
         for variant in variants {

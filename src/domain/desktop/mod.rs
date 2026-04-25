@@ -57,6 +57,8 @@ pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> 
 
     #[cfg(not(any(target_os = "linux", target_os = "windows")))]
     {
-        Err(DEError::DetectionFailed)
+        Err(DEError::UnsupportedDE {
+            de: std::env::consts::OS.to_string(),
+        })
     }
 }
