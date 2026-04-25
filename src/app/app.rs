@@ -244,9 +244,6 @@ impl AsyncComponent for App {
             source_ids,
         };
 
-        // Auto-refresh on startup
-        sender.input(AppMsg::Refresh);
-
         AsyncComponentParts { model, widgets: widgets_plus }
     }
 
