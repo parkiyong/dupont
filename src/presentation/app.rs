@@ -3,13 +3,14 @@ use std::sync::Arc;
 use tokio::sync::Mutex;
 
 use iced::{
+    time::{self, Duration, Instant},
     widget::{button, container, text, Column, Row},
-    Element, Length, Task, Theme,
+    Element, Length, Subscription, Task, Theme,
 };
 
 use crate::application::dto::SettingsDto;
 use crate::domain::{BingSource, Cache, SpotlightSource};
-use crate::infrastructure::desktop::create_desktop_backend;
+use crate::infrastructure::desktop::{create_desktop_backend, is_dark_mode};
 use crate::infrastructure::persistence::ConfigRepo;
 
 #[derive(Debug, Clone)]
@@ -19,6 +20,7 @@ pub enum Message {
     SettingsOpen,
     SettingsClose,
     WallpaperFetched(Result<(String, String, String, PathBuf), String>),
+    ThemeCheck(bool),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -55,6 +57,7 @@ pub struct AppState {
     show_settings: bool,
     selected_source: Source,
     settings: SettingsDto,
+    is_dark_mode: bool,
 }
 
 impl AppState {
@@ -72,15 +75,27 @@ impl AppState {
             show_settings: false,
             selected_source: Source::Bing,
             settings,
+            is_dark_mode: is_dark_mode(),
         }
     }
 
-    pub fn run() -> iced::Result {
+pub fn run() -> iced::Result {
         iced::application(AppState::new, update, view)
-            .title("Dupont")
-            .theme(|_: &AppState| Theme::Dark)
+            .subscription(subscription)
+            .theme(|state: &AppState| {
+                if state.is_dark_mode {
+                    Theme::Dark
+                } else {
+                    Theme::Light
+                }
+            })
             .run()
     }
+}
+
+fn subscription(_state: &AppState) -> Subscription<Message> {
+    time::every(Duration::from_secs(5))
+        .map(|_: Instant| Message::ThemeCheck(is_dark_mode()))
 }
 
 fn update(state: &mut AppState, message: Message) -> Task<Message> {
@@ -160,6 +175,13 @@ fn update(state: &mut AppState, message: Message) -> Task<Message> {
                 Err(e) => {
                     log::error!("Failed to fetch wallpaper: {}", e);
                 }
+            }
+            Task::none()
+        }
+
+        Message::ThemeCheck(is_dark) => {
+            if state.is_dark_mode != is_dark {
+                state.is_dark_mode = is_dark;
             }
             Task::none()
         }
