@@ -41,7 +41,6 @@ pub struct App {
     loading: bool,
     bing_market: Rc<RefCell<String>>,
     spotlight_locale: Rc<RefCell<String>>,
-    show_preview: Rc<RefCell<bool>>,
 }
 
 impl AsyncComponent for App {
@@ -82,7 +81,6 @@ impl AsyncComponent for App {
             loading: false,
             bing_market: Rc::new(RefCell::new(cfg.bing_market)),
             spotlight_locale: Rc::new(RefCell::new(cfg.spotlight_locale)),
-            show_preview: Rc::new(RefCell::new(cfg.show_preview)),
         };
 
         // Build widget tree manually
@@ -195,12 +193,10 @@ impl AsyncComponent for App {
         let settings_sender = sender.clone();
         let settings_market = model.bing_market.clone();
         let settings_locale = model.spotlight_locale.clone();
-        let settings_preview = model.show_preview.clone();
         settings_btn.connect_clicked(move |_| {
             let win = create_settings_window(
                 settings_market.borrow().clone(),
                 settings_locale.borrow().clone(),
-                *settings_preview.borrow(),
                 Some(&settings_root),
                 settings_sender.clone(),
             );
@@ -216,7 +212,7 @@ impl AsyncComponent for App {
             let _ = sender_refresh.send(AppMsg::Refresh);
         });
 
-// Set dropdown to default (bing, index 0)
+        // Set dropdown to default (bing, index 0)
         source_dropdown.set_selected(0);
 
         let source_ids = vec!["bing".to_string(), "spotlight".to_string()];
@@ -307,14 +303,12 @@ impl AsyncComponent for App {
                 });
             }
 
-            AppMsg::SettingsChanged { bing_market, spotlight_locale, show_preview } => {
+            AppMsg::SettingsChanged { bing_market, spotlight_locale } => {
                 *self.bing_market.borrow_mut() = bing_market.clone();
                 *self.spotlight_locale.borrow_mut() = spotlight_locale.clone();
-                *self.show_preview.borrow_mut() = show_preview;
                 let cfg = crate::app::config::Config {
                     bing_market,
                     spotlight_locale,
-                    show_preview,
                 };
                 if let Err(e) = cfg.save() {
                     eprintln!("Failed to save config: {}", e);
@@ -325,7 +319,7 @@ impl AsyncComponent for App {
 
     async fn update_cmd_with_view(
         &mut self,
-        widgets: &mut Self::Widgets,
+        widgets: &mut WidgetsPlus,
         message: Self::CommandOutput,
         _sender: AsyncComponentSender<Self>,
         _root: &Self::Root,
@@ -335,7 +329,7 @@ impl AsyncComponent for App {
                 // Load image into preview
                 let file = gtk::gio::File::for_path(&cache_path);
                 if let Ok(texture) = gtk::gdk::Texture::from_file(&file) {
-widgets.widgets.preview.set_paintable(Some(&texture));
+                    widgets.widgets.preview.set_paintable(Some(&texture));
                 }
 
                 widgets.widgets.title_label.set_label(&wallpaper.title);
@@ -392,7 +386,6 @@ fn set_button_child_label(button: &gtk::Button, text: &str) {
 fn create_settings_window(
     bing_market: String,
     spotlight_locale: String,
-    show_preview: bool,
     transient_for: Option<&gtk::ApplicationWindow>,
     sender: relm4::AsyncComponentSender<App>,
 ) -> gtk::Window {
@@ -462,49 +455,29 @@ fn create_settings_window(
     locale_dropdown.set_selected(locale_initial_index);
     vbox.append(&locale_dropdown);
 
-    // Show Preview Toggle
-    let preview_check = gtk::CheckButton::with_label("Show preview before changing wallpaper");
-    preview_check.set_active(show_preview);
-    vbox.append(&preview_check);
-
     // Wire signals
     let sender1 = sender.clone();
     let locale_dropdown_clone = locale_dropdown.clone();
-    let preview_check_clone1 = preview_check.clone();
     market_dropdown.connect_selected_notify(move |dropdown| {
-        let market = markets[dropdown.selected() as usize].to_string();
-        let locale = markets[locale_dropdown_clone.selected() as usize].to_string();
-        sender1.input(AppMsg::SettingsChanged {
-            bing_market: market,
-            spotlight_locale: locale,
-            show_preview: preview_check_clone1.is_active(),
-        });
+        let idx = dropdown.selected() as usize;
+        if let (Some(&market), Some(&locale)) = (markets.get(idx), markets.get(locale_dropdown_clone.selected() as usize)) {
+            sender1.input(AppMsg::SettingsChanged {
+                bing_market: market.to_string(),
+                spotlight_locale: locale.to_string(),
+            });
+        }
     });
 
     let sender2 = sender.clone();
     let market_dropdown_clone = market_dropdown.clone();
-    let preview_check_clone2 = preview_check.clone();
     locale_dropdown.connect_selected_notify(move |dropdown| {
-        let locale = markets[dropdown.selected() as usize].to_string();
-        let market = markets[market_dropdown_clone.selected() as usize].to_string();
-        sender2.input(AppMsg::SettingsChanged {
-            bing_market: market,
-            spotlight_locale: locale,
-            show_preview: preview_check_clone2.is_active(),
-        });
-    });
-
-    let sender3 = sender.clone();
-    let market_dropdown_clone3 = market_dropdown.clone();
-    let locale_dropdown_clone3 = locale_dropdown.clone();
-    preview_check.connect_toggled(move |check| {
-        let market = markets[market_dropdown_clone3.selected() as usize].to_string();
-        let locale = markets[locale_dropdown_clone3.selected() as usize].to_string();
-        sender3.input(AppMsg::SettingsChanged {
-            bing_market: market,
-            spotlight_locale: locale,
-            show_preview: check.is_active(),
-        });
+        let idx = dropdown.selected() as usize;
+        if let (Some(&market), Some(&locale)) = (markets.get(market_dropdown_clone.selected() as usize), markets.get(idx)) {
+            sender2.input(AppMsg::SettingsChanged {
+                bing_market: market.to_string(),
+                spotlight_locale: locale.to_string(),
+            });
+        }
     });
 
     window.set_child(Some(&vbox));
