@@ -6,7 +6,7 @@ use iced::{
     widget::{button, container, text, Column, Row},
     Element, Length, Task, Theme,
 };
-use iced_widget::{Float, Space, Stack};
+use iced_widget::Space;
 
 use crate::application::dto::SettingsDto;
 use crate::domain::{BingSource, Cache, SpotlightSource};
@@ -182,13 +182,13 @@ fn view(state: &AppState) -> Element<Message> {
                 .height(Length::Fill)
                 .content_fit(iced_core::ContentFit::Cover);
 
-            iced_widget::Stack::with_children([
-            image.into(),
-            iced_widget::Float::new(controls)
-                .translate(|_, _| iced::Vector::new(0.0, -20.0))
-                .into(),
-        ])
-        .into()
+            Column::with_children([
+                container(image).height(Length::Fill).into(),
+                controls,
+            ])
+            .spacing(0)
+            .padding(0)
+            .into()
         }
         None => controls,
     }
@@ -228,8 +228,8 @@ fn build_controls(state: &AppState) -> Element<Message> {
         refresh_btn.into(),
         settings_btn.into(),
     ])
-    .spacing(12)
-    .padding(12)
+    .spacing(8)
+    .padding([4, 12])
     .into()
 }
 
