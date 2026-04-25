@@ -205,6 +205,7 @@ fn build_controls(state: &AppState) -> Element<Message> {
     let info: Element<Message> = {
         let title = title_text.clone();
         let desc = desc_text.clone();
+        
         Column::with_children([
             text(title).size(12).into(),
             text(desc).size(10).into(),
@@ -246,7 +247,7 @@ fn build_controls(state: &AppState) -> Element<Message> {
         info,
     ])
     .spacing(8)
-    .padding([4, 4])
+    .padding(4)
     .into()
 }
 
