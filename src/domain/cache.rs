@@ -4,29 +4,9 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use image::{ImageFormat, ImageReader, Limits};
 
-use crate::domain::error::CacheError;
-use crate::domain::wallpaper::Wallpaper;
-
-/// Cache configuration
-#[derive(Debug, Clone)]
-pub struct CacheConfig {
-    /// Maximum cache size in bytes (default: 500MB)
-    pub max_size_bytes: u64,
-    /// Maximum number of cached images (default: 50)
-    pub max_count: usize,
-    /// Maximum age of cached images in seconds (default: 30 days)
-    pub max_age_seconds: u64,
-}
-
-impl Default for CacheConfig {
-    fn default() -> Self {
-        Self {
-            max_size_bytes: 500 * 1024 * 1024, // 500MB
-            max_count: 50,
-            max_age_seconds: 30 * 24 * 60 * 60, // 30 days
-        }
-    }
-}
+use crate::domain::entities::Wallpaper;
+use crate::domain::errors::CacheError;
+use crate::domain::value_objects::CacheConfig;
 
 /// Cache entry metadata
 #[derive(Debug, Clone)]

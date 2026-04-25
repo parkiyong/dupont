@@ -3,9 +3,9 @@ use reqwest::Client;
 use serde::Deserialize;
 use std::time::Duration;
 
-use crate::domain::error::SourceError;
-use crate::domain::source::Source;
-use crate::domain::wallpaper::Wallpaper;
+use crate::domain::entities::Wallpaper;
+use crate::domain::errors::SourceError;
+use crate::domain::traits::Source;
 
 /// Bing Wallpaper of the Day API response structure
 #[derive(Debug, Deserialize)]

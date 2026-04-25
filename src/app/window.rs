@@ -360,7 +360,7 @@ impl AsyncComponent for App {
                 widgets.widgets.source_dropdown.set_sensitive(true);
                 widgets.widgets.refresh_button.set_sensitive(true);
                 set_button_child_label(&widgets.widgets.refresh_button, "Refresh Wallpaper");
-                match crate::domain::create_desktop_backend() {
+                match crate::infrastructure::desktop::create_desktop_backend() {
                     Ok(backend) => {
                         if let Err(e) = backend.set_wallpaper(&cache_path) {
                             eprintln!("Failed to set wallpaper: {}", e);

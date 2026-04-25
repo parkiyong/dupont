@@ -6,9 +6,9 @@ use std::collections::hash_map::DefaultHasher;
 use std::hash::{Hash, Hasher};
 use std::time::Duration;
 
-use crate::domain::error::SourceError;
-use crate::domain::source::Source;
-use crate::domain::wallpaper::Wallpaper;
+use crate::domain::entities::Wallpaper;
+use crate::domain::errors::SourceError;
+use crate::domain::traits::Source;
 
 /// Microsoft Spotlight API (fd.api.iris.microsoft.com) response
 #[derive(Debug, Deserialize)]

@@ -1,28 +1,22 @@
+use crate::domain::errors::DEError;
+use crate::domain::traits::DesktopEnvironment;
 use std::path::Path;
 use std::process::Command;
 
-use crate::domain::desktop::{DesktopEnvironment, detect_desktop_environment};
-use crate::domain::error::DEError;
+pub struct LinuxDesktop;
 
-pub struct WallpaperDE;
-
-impl DesktopEnvironment for WallpaperDE {
+impl DesktopEnvironment for LinuxDesktop {
     fn set_wallpaper(&self, image_path: &Path) -> Result<(), DEError> {
         let path_str = image_path
             .to_str()
             .ok_or_else(|| DEError::SetError("Invalid image path".to_string()))?;
 
-        let uri = format!("file://{}", path_str);
-
         wallpaper::set_from_path(path_str)
             .map_err(|e| DEError::SetError(format!("Failed to set wallpaper: {}", e)))?;
 
         if let Some(de) = detect_desktop_environment() {
-            match de.as_str() {
-                s if s.contains("gnome") || s.contains("cinnamon") => {
-                    set_desktop_dark_wallpaper(&uri)
-                }
-                _ => {}
+            if de.contains("gnome") || de.contains("cinnamon") {
+                set_desktop_dark_wallpaper(&format!("file://{}", path_str));
             }
         }
 
@@ -31,6 +25,26 @@ impl DesktopEnvironment for WallpaperDE {
 
     fn is_available(&self) -> bool {
         wallpaper::get().is_ok()
+    }
+}
+
+pub fn detect_desktop_environment() -> Option<String> {
+    let raw = std::env::var("XDG_CURRENT_DESKTOP")
+        .or_else(|_| std::env::var("DESKTOP_SESSION"))
+        .ok()?;
+
+    let primary = raw.split(':').next()?.trim();
+    Some(primary.to_lowercase())
+}
+
+pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> {
+    let backend = LinuxDesktop;
+    if backend.is_available() {
+        Ok(Box::new(backend))
+    } else {
+        Err(DEError::UnsupportedDE {
+            de: detect_desktop_environment().unwrap_or_else(|| "unknown".to_string()),
+        })
     }
 }
 

@@ -1,38 +1,5 @@
 use thiserror::Error;
 
-/// Errors from wallpaper source fetching
-#[derive(Debug, Error)]
-pub enum SourceError {
-    #[error("HTTP request failed: {0}")]
-    HttpError(#[from] reqwest::Error),
-
-    #[error("Failed to parse API response: {0}")]
-    ParseError(String),
-
-    #[error("No wallpaper found in API response")]
-    NoWallpaperFound,
-
-    #[error("Source unavailable: {source_name}")]
-    Unavailable { source_name: String },
-
-    #[error("Rate limited by {source_name}")]
-    RateLimited { source_name: String },
-}
-
-/// Errors from cache operations
-#[derive(Debug, Error)]
-pub enum CacheError {
-    #[error("I/O error: {0}")]
-    IoError(#[from] std::io::Error),
-
-    #[error("Image decode error: {0}")]
-    ImageError(#[from] image::ImageError),
-
-    #[error("Cache directory not accessible")]
-    NotAccessible,
-}
-
-/// Errors from desktop environment operations
 #[derive(Debug, Error)]
 pub enum DEError {
     #[error("Failed to set wallpaper: {0}")]
@@ -46,7 +13,6 @@ pub enum DEError {
 mod tests {
     use super::*;
 
-    /// DESK-04: DEError::SetError Display contains the user-provided message.
     #[test]
     fn set_error_display_contains_message() {
         let err = DEError::SetError("image not found".to_string());
@@ -63,7 +29,6 @@ mod tests {
         );
     }
 
-    /// DESK-04: DEError::UnsupportedDE Display contains the DE name.
     #[test]
     fn unsupported_de_display_contains_de_name() {
         let err = DEError::UnsupportedDE {
@@ -82,7 +47,6 @@ mod tests {
         );
     }
 
-    /// DESK-04: All DEError variants produce non-empty, human-readable messages.
     #[test]
     fn all_de_error_variants_produce_readable_messages() {
         let variants: Vec<DEError> = vec![
@@ -98,7 +62,6 @@ mod tests {
                 variant,
                 msg
             );
-            // No raw struct debug format should leak
             assert!(
                 !msg.contains("DEError"),
                 "Display should not leak type name, got: {}",

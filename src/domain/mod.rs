@@ -1,14 +1,13 @@
 pub mod cache;
-pub mod desktop;
-pub mod error;
-pub mod source;
+pub mod entities;
+pub mod errors;
 pub mod sources;
-pub mod wallpaper;
+pub mod traits;
+pub mod value_objects;
 
 pub use cache::Cache;
-#[cfg(target_os = "windows")]
-pub use desktop::WindowsDE;
-pub use desktop::create_desktop_backend;
-pub use source::Source;
+pub use entities::Wallpaper;
+pub use errors::{CacheError, DEError, SourceError};
 pub use sources::{BingSource, SpotlightSource};
-pub use wallpaper::Wallpaper;
+pub use traits::{DesktopEnvironment, Source};
+pub use value_objects::CacheConfig;
