@@ -6,7 +6,7 @@ use iced::{
     widget::{button, container, text, Column, Row},
     Element, Length, Task, Theme,
 };
-use iced_widget::Space;
+use iced_widget::{Float, Space, Stack};
 
 use crate::application::dto::SettingsDto;
 use crate::domain::{BingSource, Cache, SpotlightSource};
@@ -173,16 +173,64 @@ fn view(state: &AppState) -> Element<Message> {
         return settings_view(state);
     }
 
+    let controls = build_controls(state);
+
     match &state.current_wallpaper {
         Some((_, _, _, path)) => {
-            iced_widget::Image::new(iced_widget::image::Handle::from_path(path))
+            let image = iced_widget::Image::new(iced_widget::image::Handle::from_path(path))
                 .width(Length::Fill)
                 .height(Length::Fill)
-                .content_fit(iced_core::ContentFit::Cover)
-                .into()
+                .content_fit(iced_core::ContentFit::Cover);
+
+            iced_widget::Stack::with_children([
+            image.into(),
+            iced_widget::Float::new(controls)
+                .translate(|_, _| iced::Vector::new(0.0, -20.0))
+                .into(),
+        ])
+        .into()
         }
-        None => Space::new().width(Length::Fill).height(Length::Fill).into(),
+        None => controls,
     }
+}
+
+fn build_controls(state: &AppState) -> Element<Message> {
+    let is_loading = state.loading;
+    let selected = state.selected_source;
+    
+    let bing_btn = if is_loading || selected == Source::Bing {
+        button("Bing")
+    } else {
+        button("Bing").on_press(Message::SourceSelected(Source::Bing))
+    };
+    
+    let spotlight_btn = if is_loading || selected == Source::Spotlight {
+        button("Spotlight")
+    } else {
+        button("Spotlight").on_press(Message::SourceSelected(Source::Spotlight))
+    };
+
+    let refresh_btn = if is_loading {
+        button("Refreshing...")
+    } else {
+        button("Refresh").on_press(Message::Refresh)
+    };
+
+    let settings_btn = if is_loading {
+        button("Settings")
+    } else {
+        button("Settings").on_press(Message::SettingsOpen)
+    };
+
+    Row::with_children([
+        bing_btn.into(),
+        spotlight_btn.into(),
+        refresh_btn.into(),
+        settings_btn.into(),
+    ])
+    .spacing(12)
+    .padding(12)
+    .into()
 }
 
 fn settings_view(state: &AppState) -> Element<Message> {
