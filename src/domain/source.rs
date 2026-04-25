@@ -1,6 +1,6 @@
-use async_trait::async_trait;
 use crate::domain::error::SourceError;
 use crate::domain::wallpaper::Wallpaper;
+use async_trait::async_trait;
 
 /// Trait for wallpaper sources (Bing, Spotlight, etc.)
 #[async_trait]

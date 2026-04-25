@@ -240,7 +240,10 @@ impl AsyncComponent for App {
             source_ids,
         };
 
-        AsyncComponentParts { model, widgets: widgets_plus }
+        AsyncComponentParts {
+            model,
+            widgets: widgets_plus,
+        }
     }
 
     async fn update_with_view(
@@ -264,7 +267,11 @@ impl AsyncComponent for App {
 
                 // Get source from dropdown selection
                 let idx = widgets.widgets.source_dropdown.selected() as usize;
-                let source_id = widgets.source_ids.get(idx).cloned().unwrap_or_else(|| "bing".to_string());
+                let source_id = widgets
+                    .source_ids
+                    .get(idx)
+                    .cloned()
+                    .unwrap_or_else(|| "bing".to_string());
 
                 // Clone what we need for the async command
                 let cache = self.cache.clone();
@@ -275,7 +282,9 @@ impl AsyncComponent for App {
                 sender.oneshot_command(async move {
                     // Create the appropriate source directly (avoids borrow-across-await)
                     let source: Box<dyn crate::domain::Source> = if source_id == "spotlight" {
-                        Box::new(crate::domain::SpotlightSource::with_locale(spotlight_locale))
+                        Box::new(crate::domain::SpotlightSource::with_locale(
+                            spotlight_locale,
+                        ))
                     } else {
                         Box::new(crate::domain::BingSource::with_market(bing_market))
                     };
@@ -299,11 +308,17 @@ impl AsyncComponent for App {
                         }
                     };
 
-                    CmdOut::WallpaperReady { wallpaper, cache_path }
+                    CmdOut::WallpaperReady {
+                        wallpaper,
+                        cache_path,
+                    }
                 });
             }
 
-            AppMsg::SettingsChanged { bing_market, spotlight_locale } => {
+            AppMsg::SettingsChanged {
+                bing_market,
+                spotlight_locale,
+            } => {
                 *self.bing_market.borrow_mut() = bing_market.clone();
                 *self.spotlight_locale.borrow_mut() = spotlight_locale.clone();
                 let cfg = crate::app::config::Config {
@@ -325,7 +340,10 @@ impl AsyncComponent for App {
         _root: &Self::Root,
     ) {
         match message {
-            CmdOut::WallpaperReady { wallpaper, cache_path } => {
+            CmdOut::WallpaperReady {
+                wallpaper,
+                cache_path,
+            } => {
                 // Load image into preview
                 let file = gtk::gio::File::for_path(&cache_path);
                 if let Ok(texture) = gtk::gdk::Texture::from_file(&file) {
@@ -333,8 +351,14 @@ impl AsyncComponent for App {
                 }
 
                 widgets.widgets.title_label.set_label(&wallpaper.title);
-                widgets.widgets.description_label.set_label(&wallpaper.description);
-                widgets.widgets.attribution_label.set_label(&wallpaper.attribution);
+                widgets
+                    .widgets
+                    .description_label
+                    .set_label(&wallpaper.description);
+                widgets
+                    .widgets
+                    .attribution_label
+                    .set_label(&wallpaper.attribution);
 
                 // Restore UI from loading state
                 self.loading = false;
@@ -406,8 +430,8 @@ fn create_settings_window(
     vbox.set_margin_end(12);
 
     let markets = [
-        "en-US", "zh-CN", "ja-JP", "en-AU", "en-GB", "de-DE", "en-NZ", "en-CA", "en-IN",
-        "fr-FR", "fr-CA",
+        "en-US", "zh-CN", "ja-JP", "en-AU", "en-GB", "de-DE", "en-NZ", "en-CA", "en-IN", "fr-FR",
+        "fr-CA",
     ];
     let market_names = [
         "English (United States)",
@@ -423,19 +447,14 @@ fn create_settings_window(
         "French (Canada)",
     ];
     let market_list = gtk::StringList::new(&market_names);
-    
+
     // Bing Market
     let bing_label = gtk::Label::new(Some("Bing Market"));
     bing_label.set_halign(gtk::Align::Start);
     vbox.append(&bing_label);
 
-    let market_dropdown = gtk::DropDown::builder()
-        .model(&market_list)
-        .build();
-    let initial_index = markets
-        .iter()
-        .position(|&m| m == bing_market)
-        .unwrap_or(0) as u32;
+    let market_dropdown = gtk::DropDown::builder().model(&market_list).build();
+    let initial_index = markets.iter().position(|&m| m == bing_market).unwrap_or(0) as u32;
     market_dropdown.set_selected(initial_index);
     vbox.append(&market_dropdown);
 
@@ -445,9 +464,7 @@ fn create_settings_window(
     vbox.append(&spotlight_label);
 
     let locale_list = gtk::StringList::new(&market_names);
-    let locale_dropdown = gtk::DropDown::builder()
-        .model(&locale_list)
-        .build();
+    let locale_dropdown = gtk::DropDown::builder().model(&locale_list).build();
     let locale_initial_index = markets
         .iter()
         .position(|&m| m == spotlight_locale)
@@ -460,7 +477,10 @@ fn create_settings_window(
     let locale_dropdown_clone = locale_dropdown.clone();
     market_dropdown.connect_selected_notify(move |dropdown| {
         let idx = dropdown.selected() as usize;
-        if let (Some(&market), Some(&locale)) = (markets.get(idx), markets.get(locale_dropdown_clone.selected() as usize)) {
+        if let (Some(&market), Some(&locale)) = (
+            markets.get(idx),
+            markets.get(locale_dropdown_clone.selected() as usize),
+        ) {
             sender1.input(AppMsg::SettingsChanged {
                 bing_market: market.to_string(),
                 spotlight_locale: locale.to_string(),
@@ -472,7 +492,10 @@ fn create_settings_window(
     let market_dropdown_clone = market_dropdown.clone();
     locale_dropdown.connect_selected_notify(move |dropdown| {
         let idx = dropdown.selected() as usize;
-        if let (Some(&market), Some(&locale)) = (markets.get(market_dropdown_clone.selected() as usize), markets.get(idx)) {
+        if let (Some(&market), Some(&locale)) = (
+            markets.get(market_dropdown_clone.selected() as usize),
+            markets.get(idx),
+        ) {
             sender2.input(AppMsg::SettingsChanged {
                 bing_market: market.to_string(),
                 spotlight_locale: locale.to_string(),

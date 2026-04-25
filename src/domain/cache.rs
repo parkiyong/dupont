@@ -135,10 +135,7 @@ impl Cache {
     ///
     /// Returns local file path if already cached, downloads and caches otherwise.
     /// Automatically loads cache entries on first call if not yet loaded.
-    pub async fn get_or_download(
-        &mut self,
-        wallpaper: &Wallpaper,
-    ) -> Result<PathBuf, CacheError> {
+    pub async fn get_or_download(&mut self, wallpaper: &Wallpaper) -> Result<PathBuf, CacheError> {
         // Load entries if not already loaded
         if self.entries.is_empty() {
             self.load_entries().await?;
@@ -173,22 +170,15 @@ impl Cache {
     }
 
     /// Download a wallpaper image and cache it locally
-    async fn download_and_cache(
-        &mut self,
-        wallpaper: &Wallpaper,
-    ) -> Result<PathBuf, CacheError> {
+    async fn download_and_cache(&mut self, wallpaper: &Wallpaper) -> Result<PathBuf, CacheError> {
         // Download image bytes
         let client = reqwest::Client::new();
-        let response = client
-            .get(&wallpaper.url)
-            .send()
-            .await
-            .map_err(|e| {
-                CacheError::IoError(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    format!("HTTP request failed: {}", e),
-                ))
-            })?;
+        let response = client.get(&wallpaper.url).send().await.map_err(|e| {
+            CacheError::IoError(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("HTTP request failed: {}", e),
+            ))
+        })?;
 
         if !response.status().is_success() {
             return Err(CacheError::IoError(std::io::Error::new(
@@ -197,21 +187,20 @@ impl Cache {
             )));
         }
 
-        let image_bytes = response
-            .bytes()
-            .await
-            .map_err(|e| {
-                CacheError::IoError(std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    format!("Failed to download image: {}", e),
-                ))
-            })?;
+        let image_bytes = response.bytes().await.map_err(|e| {
+            CacheError::IoError(std::io::Error::new(
+                std::io::ErrorKind::Other,
+                format!("Failed to download image: {}", e),
+            ))
+        })?;
 
         // Validate image format and detect file extension in a single pass
         let extension = self.validate_and_detect(image_bytes.as_ref())?;
 
         // Generate cache file path
-        let cache_path = self.cache_dir.join(format!("{}.{}", wallpaper.id, extension));
+        let cache_path = self
+            .cache_dir
+            .join(format!("{}.{}", wallpaper.id, extension));
 
         // Write image bytes to cache
         tokio::fs::write(&cache_path, &image_bytes)
@@ -289,7 +278,8 @@ impl Cache {
         let total_size: u64 = self.entries.iter().map(|e| e.size_bytes).sum();
         let count = self.entries.len();
 
-        let needs_eviction = total_size > self.config.max_size_bytes || count > self.config.max_count;
+        let needs_eviction =
+            total_size > self.config.max_size_bytes || count > self.config.max_count;
         if !needs_eviction {
             return Ok(());
         }

@@ -15,15 +15,14 @@ impl DesktopEnvironment for WindowsDE {
             )));
         }
 
-        let path_str = image_path.to_str().ok_or_else(|| {
-            DEError::SetError("Invalid image path".to_string())
-        })?;
+        let path_str = image_path
+            .to_str()
+            .ok_or_else(|| DEError::SetError("Invalid image path".to_string()))?;
 
         let uri = format!("file://{}", path_str);
 
-        wallpaper::set_from_path(path_str).map_err(|e| {
-            DEError::SetError(format!("Failed to set wallpaper: {}", e))
-        })?;
+        wallpaper::set_from_path(path_str)
+            .map_err(|e| DEError::SetError(format!("Failed to set wallpaper: {}", e)))?;
 
         set_windows_dark_wallpaper(&uri);
 

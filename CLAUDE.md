@@ -13,7 +13,8 @@ cargo build --release                    # Full release build
 cargo run --release                      # Run the app
 cargo test                               # Run unit tests
 cargo clippy                             # Lint
-cargo fmt --check                        # Format check
+cargo fmt                                # Format code
+cargo fmt --check                        # Format check (CI)
 ```
 
 ## Architecture

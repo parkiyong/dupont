@@ -1,7 +1,7 @@
 use relm4::RelmApp;
 
-mod domain;
 mod app;
+mod domain;
 
 fn main() {
     let app = RelmApp::new("io.github.parkiyong.dupont");

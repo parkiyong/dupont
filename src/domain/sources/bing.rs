@@ -66,19 +66,15 @@ impl Default for BingSource {
 impl Source for BingSource {
     async fn fetch(&self) -> Result<Wallpaper, SourceError> {
         // Build API URL with parameters
-        let url = format!(
-            "{}?format=js&idx=0&n=1&mkt={}",
-            self.base_url, self.market
-        );
+        let url = format!("{}?format=js&idx=0&n=1&mkt={}", self.base_url, self.market);
 
         // Fetch from Bing API with retry for rate limiting
         let response = self.fetch_with_retry(&url, 3).await?;
 
         // Parse JSON response
-        let bing_response: BingResponse = response
-            .json()
-            .await
-            .map_err(|e| SourceError::ParseError(format!("Failed to parse Bing API response: {}", e)))?;
+        let bing_response: BingResponse = response.json().await.map_err(|e| {
+            SourceError::ParseError(format!("Failed to parse Bing API response: {}", e))
+        })?;
 
         // Extract first image
         let image = bing_response
