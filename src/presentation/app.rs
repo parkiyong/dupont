@@ -1,12 +1,16 @@
 use std::path::PathBuf;
 use std::sync::Arc;
+use std::sync::atomic::{AtomicU8, Ordering};
 use tokio::sync::Mutex;
 
 use iced::{
+    time::{self, Duration, Instant},
     widget::{button, container, text, Column, Row},
-    Element, Length, Task, Theme,
+    Element, Length, Subscription, Task, Theme,
 };
 use iced_widget::Space;
+
+static INIT_COUNT: AtomicU8 = AtomicU8::new(1);
 
 use crate::application::dto::SettingsDto;
 use crate::domain::{BingSource, Cache, SpotlightSource};
@@ -75,12 +79,21 @@ impl AppState {
             show_settings: false,
             selected_source: Source::Bing,
             settings,
-        }
+}
     }
 
     pub fn run() -> iced::Result {
         iced::application(AppState::new, update, view)
+            .title("Dupont")
             .theme(|_: &AppState| Theme::Dark)
+            .subscription(|state| {
+                if state.current_wallpaper.is_some() && INIT_COUNT.load(Ordering::Relaxed) > 0 {
+                    INIT_COUNT.fetch_sub(1, Ordering::Relaxed);
+                    time::every(Duration::from_secs(1)).map(|_| Message::Refresh)
+                } else {
+                    Subscription::none()
+                }
+            })
             .run()
     }
 }
