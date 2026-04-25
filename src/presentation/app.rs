@@ -229,7 +229,7 @@ fn build_controls(state: &AppState) -> Element<Message> {
         settings_btn.into(),
     ])
     .spacing(8)
-    .padding([4, 12])
+    .padding([4, 4])
     .into()
 }
 
