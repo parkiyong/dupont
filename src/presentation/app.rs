@@ -61,6 +61,7 @@ pub struct AppState {
     show_settings: bool,
     selected_source: Source,
     settings: SettingsDto,
+    error_message: Option<String>,
 }
 
 impl AppState {
@@ -77,6 +78,7 @@ impl AppState {
             show_settings: false,
             selected_source: Source::Bing,
             settings,
+            error_message: None,
         }
     }
 
@@ -164,9 +166,11 @@ fn update(state: &mut AppState, message: Message) -> Task<Message> {
                 Ok((title, description, attribution, cache_path)) => {
                     state.current_wallpaper =
                         Some((title, description, attribution, cache_path.clone()));
+                    state.error_message = None; // Clear any previous errors
                 }
                 Err(e) => {
                     log::error!("Failed to fetch wallpaper: {}", e);
+                    state.error_message = Some(e);
                 }
             }
             Task::none()
@@ -181,7 +185,8 @@ fn view(state: &AppState) -> Element<'_, Message> {
 
     let controls = build_controls(state);
 
-    match &state.current_wallpaper {
+    // Build main content
+    let content = match &state.current_wallpaper {
         Some((_, _, _, path)) => {
             let image = iced_widget::Image::new(iced_widget::image::Handle::from_path(path))
                 .width(Length::Fill)
@@ -194,6 +199,21 @@ fn view(state: &AppState) -> Element<'_, Message> {
                 .into()
         }
         None => controls,
+    };
+
+    // Add error message display if present
+    if let Some(error) = &state.error_message {
+        Column::with_children([
+            container(text(error).size(14))
+                .padding(12)
+                .width(Length::Fill)
+                .into(),
+            content,
+        ])
+        .spacing(0)
+        .into()
+    } else {
+        content
     }
 }
 

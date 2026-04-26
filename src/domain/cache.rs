@@ -328,3 +328,54 @@ fn now_secs() -> u64 {
         .unwrap_or_default()
         .as_secs()
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_cache_creation() {
+        let config = CacheConfig::default();
+        let cache = Cache::new(config);
+        assert!(cache.is_ok(), "Cache creation should succeed");
+    }
+
+    #[test]
+    fn test_cache_directory_exists() {
+        let cache = Cache::new(CacheConfig::default()).expect("Failed to create cache");
+        assert!(
+            cache.cache_dir.exists(),
+            "Cache directory should be created"
+        );
+    }
+
+    #[test]
+    fn test_cache_config_defaults() {
+        let config = CacheConfig::default();
+        assert_eq!(
+            config.max_size_bytes,
+            500 * 1024 * 1024,
+            "Default max size should be 500MB"
+        );
+        assert_eq!(config.max_count, 50, "Default max images should be 50");
+        assert_eq!(
+            config.max_age_seconds,
+            30 * 24 * 60 * 60,
+            "Default max age should be 30 days"
+        );
+    }
+
+    #[test]
+    fn test_to_unix_secs() {
+        let time = UNIX_EPOCH;
+        let result = to_unix_secs(time);
+        assert!(result.is_ok());
+        assert_eq!(result.unwrap(), 0);
+    }
+
+    #[test]
+    fn test_now_secs() {
+        let now = now_secs();
+        assert!(now > 0, "Current timestamp should be positive");
+    }
+}

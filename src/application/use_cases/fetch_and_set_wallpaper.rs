@@ -77,3 +77,44 @@ impl FetchAndSetWallpaperUseCase {
         })
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_fetch_and_set_error_display() {
+        let fetch_err = FetchAndSetError::FetchFailed("API error".to_string());
+        assert_eq!(
+            fetch_err.to_string(),
+            "Failed to fetch wallpaper: API error"
+        );
+
+        let cache_err = FetchAndSetError::CacheFailed("Disk full".to_string());
+        assert_eq!(
+            cache_err.to_string(),
+            "Failed to cache wallpaper: Disk full"
+        );
+
+        let set_err = FetchAndSetError::SetWallpaperFailed("Permission denied".to_string());
+        assert_eq!(
+            set_err.to_string(),
+            "Failed to set wallpaper: Permission denied"
+        );
+    }
+
+    #[test]
+    fn test_fetch_wallpaper_output_structure() {
+        let output = FetchWallpaperOutput {
+            title: "Test Wallpaper".to_string(),
+            description: "Test Description".to_string(),
+            attribution: "Test Attribution".to_string(),
+            cache_path: "/tmp/test.jpg".into(),
+        };
+
+        assert_eq!(output.title, "Test Wallpaper");
+        assert_eq!(output.description, "Test Description");
+        assert_eq!(output.attribution, "Test Attribution");
+        assert_eq!(output.cache_path, PathBuf::from("/tmp/test.jpg"));
+    }
+}
