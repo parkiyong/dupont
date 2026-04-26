@@ -1,3 +1,4 @@
+use std::fmt;
 use std::path::PathBuf;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicU8, Ordering};
@@ -6,17 +7,41 @@ use tokio::sync::Mutex;
 use iced::{
     Element, Length, Subscription, Task, Theme,
     time::{self, Duration},
-    widget::{Column, Row, button, container, text},
+    widget::{Column, Row, button, container, pick_list, text},
 };
 use iced_widget::Space;
 
 static INIT_COUNT: AtomicU8 = AtomicU8::new(1);
 
 use crate::application::dto::SettingsDto;
+use crate::application::dto::settings_dto::{
+    BING_MARKETS, SPOTLIGHT_LOCALES, bing_market_label, spotlight_locale_label,
+};
 use crate::application::use_cases::FetchAndSetWallpaperUseCase;
 use crate::domain::{BingSource, Cache, SpotlightSource};
 use crate::infrastructure::desktop::create_desktop_backend;
 use crate::infrastructure::persistence::ConfigRepo;
+
+#[derive(Clone, PartialEq, Eq)]
+struct LocaleOption {
+    code: String,
+    label: String,
+}
+
+impl LocaleOption {
+    fn new(code: &str, label_fn: fn(&str) -> String) -> Self {
+        Self {
+            code: code.to_string(),
+            label: label_fn(code),
+        }
+    }
+}
+
+impl fmt::Display for LocaleOption {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.label)
+    }
+}
 
 #[derive(Debug, Clone)]
 pub enum Message {
@@ -24,6 +49,8 @@ pub enum Message {
     SourceSelected(Source),
     SettingsOpen,
     SettingsClose,
+    BingMarketSelected(String),
+    SpotlightLocaleSelected(String),
     WallpaperFetched(Result<(String, String, String, PathBuf), String>),
 }
 
@@ -56,6 +83,7 @@ impl Source {
 #[derive(Clone)]
 pub struct AppState {
     cache: Arc<Mutex<Cache>>,
+    settings_repo: ConfigRepo,
     current_wallpaper: Option<(String, String, String, PathBuf)>,
     loading: bool,
     show_settings: bool,
@@ -73,6 +101,7 @@ impl AppState {
 
         Self {
             cache: Arc::new(Mutex::new(cache)),
+            settings_repo,
             current_wallpaper: None,
             loading: false,
             show_settings: false,
@@ -156,6 +185,18 @@ fn update(state: &mut AppState, message: Message) -> Task<Message> {
 
         Message::SettingsClose => {
             state.show_settings = false;
+            Task::none()
+        }
+
+        Message::BingMarketSelected(market) => {
+            state.settings.bing_market = market;
+            let _ = state.settings_repo.save(&state.settings);
+            Task::none()
+        }
+
+        Message::SpotlightLocaleSelected(locale) => {
+            state.settings.spotlight_locale = locale;
+            let _ = state.settings_repo.save(&state.settings);
             Task::none()
         }
 
@@ -274,15 +315,47 @@ fn build_controls(state: &AppState) -> Element<'_, Message> {
 }
 
 fn settings_view(state: &AppState) -> Element<'_, Message> {
+    let bing_markets: Vec<LocaleOption> = BING_MARKETS
+        .iter()
+        .map(|s| LocaleOption::new(s, bing_market_label))
+        .collect();
+    let spotlight_locales: Vec<LocaleOption> = SPOTLIGHT_LOCALES
+        .iter()
+        .map(|s| LocaleOption::new(s, spotlight_locale_label))
+        .collect();
+
+    let bing_selected = bing_markets
+        .iter()
+        .find(|opt| opt.code == state.settings.bing_market)
+        .cloned();
+    let spotlight_selected = spotlight_locales
+        .iter()
+        .find(|opt| opt.code == state.settings.spotlight_locale)
+        .cloned();
+
+    let bing_picker = pick_list(bing_markets.clone(), bing_selected, |opt| {
+        Message::BingMarketSelected(opt.code.clone())
+    });
+
+    let spotlight_picker = pick_list(spotlight_locales.clone(), spotlight_selected, |opt| {
+        Message::SpotlightLocaleSelected(opt.code.clone())
+    });
+
     container(
         Column::with_children([
             text("Settings").size(24).into(),
             Column::with_children([
-                text(format!("Bing Market: {}", state.settings.bing_market)).into(),
-                text(format!(
-                    "Spotlight Locale: {}",
-                    state.settings.spotlight_locale
-                ))
+                Row::with_children([
+                    text("Bing Market:").width(Length::Fixed(130.0)).into(),
+                    bing_picker.width(Length::Fixed(220.0)).into(),
+                ])
+                .spacing(12)
+                .into(),
+                Row::with_children([
+                    text("Spotlight Locale:").width(Length::Fixed(130.0)).into(),
+                    spotlight_picker.width(Length::Fixed(220.0)).into(),
+                ])
+                .spacing(12)
                 .into(),
             ])
             .spacing(12)
