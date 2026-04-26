@@ -13,6 +13,7 @@ use iced_widget::Space;
 static INIT_COUNT: AtomicU8 = AtomicU8::new(1);
 
 use crate::application::dto::SettingsDto;
+use crate::application::use_cases::FetchAndSetWallpaperUseCase;
 use crate::domain::{BingSource, Cache, SpotlightSource};
 use crate::infrastructure::desktop::create_desktop_backend;
 use crate::infrastructure::persistence::ConfigRepo;
@@ -109,32 +110,33 @@ fn update(state: &mut AppState, message: Message) -> Task<Message> {
 
             Task::perform(
                 async move {
+                    // Create source based on selection (clone fields to avoid partial move)
                     let src: Box<dyn crate::domain::Source> = match source {
-                        Source::Bing => Box::new(BingSource::with_market(settings.bing_market)),
-                        Source::Spotlight => {
-                            Box::new(SpotlightSource::with_locale(settings.spotlight_locale))
+                        Source::Bing => {
+                            Box::new(BingSource::with_market(settings.bing_market.clone()))
                         }
+                        Source::Spotlight => Box::new(SpotlightSource::with_locale(
+                            settings.spotlight_locale.clone(),
+                        )),
                     };
 
-                    let wallpaper = match src.fetch().await {
-                        Ok(w) => w,
+                    // Create desktop backend
+                    let desktop = match create_desktop_backend() {
+                        Ok(backend) => backend,
                         Err(e) => return Err(e.to_string()),
                     };
 
-                    let cache_path = {
-                        let mut guard = cache.lock().await;
-                        match guard.get_or_download(&wallpaper).await {
-                            Ok(p) => p,
-                            Err(e) => return Err(e.to_string()),
-                        }
-                    };
-
-                    Ok((
-                        wallpaper.title,
-                        wallpaper.description,
-                        wallpaper.attribution,
-                        cache_path,
-                    ))
+                    // Call use case to orchestrate fetch → cache → set
+                    match FetchAndSetWallpaperUseCase::execute(src, cache, desktop, &settings).await
+                    {
+                        Ok(output) => Ok((
+                            output.title,
+                            output.description,
+                            output.attribution,
+                            output.cache_path,
+                        )),
+                        Err(e) => Err(e.to_string()),
+                    }
                 },
                 Message::WallpaperFetched,
             )
@@ -162,12 +164,6 @@ fn update(state: &mut AppState, message: Message) -> Task<Message> {
                 Ok((title, description, attribution, cache_path)) => {
                     state.current_wallpaper =
                         Some((title, description, attribution, cache_path.clone()));
-
-                    if let Ok(backend) = create_desktop_backend() {
-                        if let Err(e) = backend.set_wallpaper(&cache_path) {
-                            log::error!("Failed to set wallpaper: {}", e);
-                        }
-                    }
                 }
                 Err(e) => {
                     log::error!("Failed to fetch wallpaper: {}", e);
