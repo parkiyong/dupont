@@ -21,12 +21,9 @@ parts:
     build-packages:
       - libgtk-3-dev
       - libayatana-appindicator3-dev
-    rust-channel: stable
-    rust-packages:
       - pkg-config
       - libssl-dev
-    build-env:
-      - CARGO_HOME: /root/cargo
+    rust-channel: stable
     override-build: |
       snapcraftctl build
       install -Dm755 target/release/dupont $SNAPCRAFT_PART_INSTALL/bin/dupont
@@ -39,6 +36,8 @@ apps:
     desktop: usr/share/applications/io.github.parkiyong.dupont.desktop
     environment:
       DISPLAY: ":0"
+      WAYLAND_SOCKET: "$WAYLAND_DISPLAY"
+      XDG_RUNTIME_DIR: "$XDG_RUNTIME_DIR"
     plugs:
       - desktop
       - opengl
