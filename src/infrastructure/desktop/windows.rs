@@ -4,6 +4,7 @@ use std::path::Path;
 
 pub struct WindowsDesktop;
 
+#[allow(dead_code)]
 impl DesktopEnvironment for WindowsDesktop {
     fn set_wallpaper(&self, image_path: &Path) -> Result<(), DEError> {
         let path_str = image_path
@@ -21,6 +22,7 @@ impl DesktopEnvironment for WindowsDesktop {
     }
 }
 
+#[allow(dead_code)]
 pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> {
     Ok(Box::new(WindowsDesktop))
 }

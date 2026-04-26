@@ -48,6 +48,7 @@ pub fn create_desktop_backend() -> Result<Box<dyn DesktopEnvironment>, DEError> 
     }
 }
 
+#[allow(dead_code)]
 pub fn is_dark_mode() -> bool {
     if let Some(de) = detect_desktop_environment() {
         if de.contains("gnome") || de.contains("ubuntu") {

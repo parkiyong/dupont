@@ -4,9 +4,9 @@ use std::sync::atomic::{AtomicU8, Ordering};
 use tokio::sync::Mutex;
 
 use iced::{
-    time::{self, Duration},
-    widget::{button, container, text, Column, Row},
     Element, Length, Subscription, Task, Theme,
+    time::{self, Duration},
+    widget::{Column, Row, button, container, text},
 };
 use iced_widget::Space;
 
@@ -39,6 +39,7 @@ impl std::fmt::Display for Source {
 }
 
 impl Source {
+    #[allow(dead_code)]
     fn all() -> Vec<Source> {
         vec![Source::Bing, Source::Spotlight]
     }
@@ -54,7 +55,6 @@ impl Source {
 #[derive(Clone)]
 pub struct AppState {
     cache: Arc<Mutex<Cache>>,
-    settings_repo: ConfigRepo,
     current_wallpaper: Option<(String, String, String, PathBuf)>,
     loading: bool,
     show_settings: bool,
@@ -71,13 +71,12 @@ impl AppState {
 
         Self {
             cache: Arc::new(Mutex::new(cache)),
-            settings_repo,
             current_wallpaper: None,
             loading: false,
             show_settings: false,
             selected_source: Source::Bing,
             settings,
-}
+        }
     }
 
     pub fn run() -> iced::Result {
@@ -179,7 +178,7 @@ fn update(state: &mut AppState, message: Message) -> Task<Message> {
     }
 }
 
-fn view(state: &AppState) -> Element<Message> {
+fn view(state: &AppState) -> Element<'_, Message> {
     if state.show_settings {
         return settings_view(state);
     }
@@ -193,44 +192,40 @@ fn view(state: &AppState) -> Element<Message> {
                 .height(Length::Fill)
                 .content_fit(iced_core::ContentFit::Cover);
 
-            Column::with_children([
-                container(image).height(Length::Fill).into(),
-                controls,
-            ])
-            .spacing(0)
-            .padding(0)
-            .into()
+            Column::with_children([container(image).height(Length::Fill).into(), controls])
+                .spacing(0)
+                .padding(0)
+                .into()
         }
         None => controls,
     }
 }
 
-fn build_controls(state: &AppState) -> Element<Message> {
+fn build_controls(state: &AppState) -> Element<'_, Message> {
     let is_loading = state.loading;
     let selected = state.selected_source;
-    
-    let (title_text, desc_text) = state.current_wallpaper.as_ref()
+
+    let (title_text, desc_text) = state
+        .current_wallpaper
+        .as_ref()
         .map(|(t, d, _, _)| (t.clone(), d.clone()))
         .unwrap_or((String::new(), String::new()));
-    
+
     let info: Element<Message> = {
         let title = title_text.clone();
         let desc = desc_text.clone();
-        
-        Column::with_children([
-            text(title).size(12).into(),
-            text(desc).size(10).into(),
-        ])
-        .spacing(0)
-        .into()
+
+        Column::with_children([text(title).size(12).into(), text(desc).size(10).into()])
+            .spacing(0)
+            .into()
     };
-    
+
     let bing_btn = if is_loading || selected == Source::Bing {
         button("Bing")
     } else {
         button("Bing").on_press(Message::SourceSelected(Source::Bing))
     };
-    
+
     let spotlight_btn = if is_loading || selected == Source::Spotlight {
         button("Spotlight")
     } else {
@@ -262,7 +257,7 @@ fn build_controls(state: &AppState) -> Element<Message> {
     .into()
 }
 
-fn settings_view(state: &AppState) -> Element<Message> {
+fn settings_view(state: &AppState) -> Element<'_, Message> {
     container(
         Column::with_children([
             text("Settings").size(24).into(),

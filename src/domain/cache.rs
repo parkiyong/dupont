@@ -49,6 +49,7 @@ impl Cache {
     /// Create a new cache manager with default configuration
     ///
     /// Defaults: 500MB max size, 50 max images, 30 days max age.
+    #[allow(dead_code)]
     pub fn with_defaults() -> Result<Self, CacheError> {
         Self::new(CacheConfig::default())
     }

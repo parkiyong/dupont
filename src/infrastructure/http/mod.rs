@@ -1,1 +1,1 @@
-pub mod client;
+// HTTP client module (to be implemented)
