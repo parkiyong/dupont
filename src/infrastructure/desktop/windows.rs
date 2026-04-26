@@ -2,9 +2,9 @@ use crate::domain::errors::DEError;
 use crate::domain::traits::DesktopEnvironment;
 use std::path::Path;
 
+#[allow(dead_code)]
 pub struct WindowsDesktop;
 
-#[allow(dead_code)]
 impl DesktopEnvironment for WindowsDesktop {
     fn set_wallpaper(&self, image_path: &Path) -> Result<(), DEError> {
         let path_str = image_path
