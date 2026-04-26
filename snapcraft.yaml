@@ -6,6 +6,9 @@ description: |
   Dupont is a native Linux desktop wallpaper app that fetches daily wallpapers
   from Bing Wallpaper of the Day and Microsoft Spotlight. Supports multiple
   languages and markets.
+license: GPL-3.0-only
+title: Dupont
+contact: https://github.com/parkiyong/dupont/issues
 
 grade: stable
 confinement: strict
@@ -29,15 +32,12 @@ parts:
       install -Dm755 target/release/dupont $SNAPCRAFT_PART_INSTALL/bin/dupont
       install -Dm644 data/io.github.parkiyong.dupont.desktop $SNAPCRAFT_PART_INSTALL/usr/share/applications/io.github.parkiyong.dupont.desktop
       install -Dm644 data/icons/scalable/io.github.parkiyong.dupont.svg $SNAPCRAFT_PART_INSTALL/usr/share/icons/hicolor/scalable/apps/io.github.parkiyong.dupont.svg
+      install -Dm644 data/icons/symbolic/io.github.parkiyong.dupont-symbolic.svg $SNAPCRAFT_PART_INSTALL/usr/share/icons/hicolor/symbolic/apps/io.github.parkiyong.dupont.svg
 
 apps:
   dupont:
     command: bin/dupont
     desktop: usr/share/applications/io.github.parkiyong.dupont.desktop
-    environment:
-      DISPLAY: ":0"
-      WAYLAND_SOCKET: "$WAYLAND_DISPLAY"
-      XDG_RUNTIME_DIR: "$XDG_RUNTIME_DIR"
     plugs:
       - desktop
       - opengl
